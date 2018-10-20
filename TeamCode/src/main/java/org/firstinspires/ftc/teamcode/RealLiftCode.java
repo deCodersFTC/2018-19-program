@@ -143,6 +143,7 @@ public class RealLiftCode extends LinearOpMode {
 
             //telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Motor Power", lift.getPower());
+            telemetry.addData("Written by", "Tejas and Sharad");
             telemetry.update();
         }
     }
