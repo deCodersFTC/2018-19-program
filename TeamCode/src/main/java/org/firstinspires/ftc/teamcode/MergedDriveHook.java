@@ -51,7 +51,7 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="FourWheelDrive", group="deCoders Prototypes")
+@TeleOp(name="MergedCode", group="deCoders Prototypes")
 public class FourWheelDrive extends LinearOpMode {
 
     // Declare OpMode members.
