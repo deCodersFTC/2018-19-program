@@ -34,8 +34,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -57,11 +61,19 @@ public class AutonomousCode extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor lift = null;
+
+    DistanceSensor sensorRange;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+
+        lift = hardwareMap.get(DcMotor.class, "lift");
+        sensorRange = hardwareMap.get(DistanceSensor.class, "range");
+
+        lift.setDirection(DcMotor.Direction.REVERSE);
 
 
         // Wait for the game to start (driver presses PLAY)
@@ -71,10 +83,17 @@ public class AutonomousCode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
+            if (sensorRange.getDistance(DistanceUnit.INCH) < 2.0){
+                lift.setPower(0.0);
+            }
 
+            else{
+                //run normal code
+            }
 
             // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString()););
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Distance from Ground", sensorRange.getDistance(DistanceUnit.INCH));
             telemetry.update();
         }
     }
