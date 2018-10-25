@@ -51,7 +51,7 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="FourWheelDrive", group="deCoders Prototypes")
+@TeleOp(name="MergedCode", group="deCoders Prototypes")
 public class FourWheelDrive extends LinearOpMode {
 
     // Declare OpMode members.
@@ -166,7 +166,7 @@ public class FourWheelDrive extends LinearOpMode {
             // - This uses basic math to combine motions and is easier to drive straight.
             double drive = -gamepad1.left_stick_y;
             double turn  =  gamepad1.right_stick_x;
-            leftPower    = -Rangeclip(drive + turn, -1.0, 1.0) ;
+            leftPower    = -Range.clip(drive + turn, -1.0, 1.0) ;
             rightPower   = -Range.clip(drive - turn, -1.0, 1.0) ;
             //slidePower = -gamepad1.left_stick_x;
             // Tank Mode uses one stick to control each wheel.
