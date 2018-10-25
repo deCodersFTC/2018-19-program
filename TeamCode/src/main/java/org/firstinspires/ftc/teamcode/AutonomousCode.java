@@ -83,7 +83,7 @@ public class AutonomousCode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            if (sensorRange.getDistance(DistanceUnit.INCH) < 2.0){
+            if (sensorRange.getDistance(DistanceUnit.INCH) < 3.0){
                 lift.setPower(0.0);
             }
 
