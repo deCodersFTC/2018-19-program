@@ -1,4 +1,6 @@
 /* Copyright (c) 2017 FIRST. All rights reserved.
+
+ * Written by deCoders Robotics Team
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -41,6 +43,8 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import java.util.concurrent.TimeUnit;
+
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -55,13 +59,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
+
+
 @Autonomous(name="Hook Descend Code", group="Linear Opmode")
-@Disabled
+//@Disabled
 public class AutonomousCode extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor lift = null;
+    private DcMotor LeftDriveFront = null;
+    private DcMotor RightDriveFront = null;
+    private DcMotor LeftDriveBack = null;
+    private DcMotor RightDriveBack = null;
+
 
     DistanceSensor sensorRange;
 
@@ -73,7 +84,17 @@ public class AutonomousCode extends LinearOpMode {
         lift = hardwareMap.get(DcMotor.class, "lift");
         sensorRange = hardwareMap.get(DistanceSensor.class, "range");
 
+        LeftDriveFront = hardwareMap.get(DcMotor.class, "LeftDriveFront");
+        RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
+        LeftDriveBack = hardwareMap.get(DcMotor.class, "LeftDriveBack");
+        RightDriveBack = hardwareMap.get(DcMotor.class, "RightDriveBack");
+
         lift.setDirection(DcMotor.Direction.REVERSE);
+
+        LeftDriveFront.setDirection(DcMotor.Direction.FORWARD);
+        RightDriveFront.setDirection(DcMotor.Direction.REVERSE);
+        LeftDriveBack.setDirection(DcMotor.Direction.FORWARD);
+        RightDriveBack.setDirection(DcMotor.Direction.REVERSE);
 
 
         // Wait for the game to start (driver presses PLAY)
@@ -84,11 +105,26 @@ public class AutonomousCode extends LinearOpMode {
         while (opModeIsActive()) {
 
             if (sensorRange.getDistance(DistanceUnit.INCH) < 3.0){
+                //if the sensor is less than 3 inches of the ground this code will trigger
                 lift.setPower(0.0);
+                //stop the arm from moving any more and lock it in place
+                LeftDriveFront.setPower(1.0);
+                RightDriveFront.setPower(-1.0);
+                LeftDriveBack.setPower(1.0);
+                RightDriveBack.setPower(-1.0);
+                //needs to be accomplished: figure out how to make multiple actions happen at the same time for a set time
+                //make motors turn and bring the hook out of the tower by turning sideways
             }
 
             else{
-                //run normal code
+                //otherwise run normal code
+                lift.setPower(1.0);
+                Thread.sleep(9000);
+                //robot is descending and will hit the ground
+                lift.setPower(-1.0);
+                //shrink the hook arm back down so that it is compact
+
+
             }
 
             // Show the elapsed game time and wheel power.
