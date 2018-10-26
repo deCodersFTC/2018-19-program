@@ -104,28 +104,51 @@ public class AutonomousCode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            if (sensorRange.getDistance(DistanceUnit.INCH) < 3.0){
-                //if the sensor is less than 3 inches of the ground this code will trigger
-                lift.setPower(0.0);
-                //stop the arm from moving any more and lock it in place
-                LeftDriveFront.setPower(1.0);
-                RightDriveFront.setPower(-1.0);
+            while (sensorRange.getDistance(DistanceUnit.INCH) > 2.0){
+                lift.setPower(1.0);
+            }
+            while (sensorRange.getDistance(DistanceUnit.INCH) >= 2.0){
+                lift.setPower(1.0);
+            }
+
+            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);stop>System.nanoTime();) {
+                LeftDriveFront.setPower(-1.0);
+                RightDriveFront.setPower(1.0);
                 LeftDriveBack.setPower(1.0);
                 RightDriveBack.setPower(-1.0);
-                //needs to be accomplished: figure out how to make multiple actions happen at the same time for a set time
-                //make motors turn and bring the hook out of the tower by turning sideways
+                //uses the mecanum wheels to move robot sideways and out of the hook for 3 seconds
             }
 
-            else{
-                //otherwise run normal code
-                lift.setPower(1.0);
-                Thread.sleep(9000);
-                //robot is descending and will hit the ground
-                lift.setPower(-1.0);
-                //shrink the hook arm back down so that it is compact
-
-
+            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);stop>System.nanoTime();) {
+                LeftDriveFront.setPower(-1.0);
+                RightDriveFront.setPower(-1.0);
+                LeftDriveBack.setPower(-1.0);
+                RightDriveBack.setPower(-1.0);
+                //reverses the robot and backes it away from the tower for 5 seconds
             }
+
+//            if (sensorRange.getDistance(DistanceUnit.INCH) < 3.0){
+//                //if the sensor is less than 3 inches of the ground this code will trigger
+//                lift.setPower(0.0);
+//                //stop the arm from moving any more and lock it in place
+//                LeftDriveFront.setPower(1.0);
+//                RightDriveFront.setPower(-1.0);
+//                LeftDriveBack.setPower(1.0);
+//                RightDriveBack.setPower(-1.0);
+//                //needs to be accomplished: figure out how to make multiple actions happen at the same time for a set time
+//                //make motors turn and bring the hook out of the tower by turning sideways
+//            }
+//
+//            else{
+//                //otherwise run normal code
+//                lift.setPower(1.0);
+//                Thread.sleep(9000);
+//                //robot is descending and will hit the ground
+//                lift.setPower(-1.0);
+//                //shrink the hook arm back down so that it is compact
+//
+//
+//            }
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
