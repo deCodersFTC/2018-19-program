@@ -96,6 +96,8 @@ public class AutonomousCode extends LinearOpMode {
         LeftDriveBack.setDirection(DcMotor.Direction.FORWARD);
         RightDriveBack.setDirection(DcMotor.Direction.REVERSE);
 
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -106,9 +108,11 @@ public class AutonomousCode extends LinearOpMode {
 
             while (sensorRange.getDistance(DistanceUnit.INCH) > 2.0){
                 lift.setPower(1.0);
+                //descending robot
             }
             while (sensorRange.getDistance(DistanceUnit.INCH) >= 2.0){
                 lift.setPower(1.0);
+                //raising arm to right position for unlatching
             }
 
             for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);stop>System.nanoTime();) {
@@ -117,6 +121,10 @@ public class AutonomousCode extends LinearOpMode {
                 LeftDriveBack.setPower(1.0);
                 RightDriveBack.setPower(-1.0);
                 //uses the mecanum wheels to move robot sideways and out of the hook for 3 seconds
+            }
+            while (sensorRange.getDistance(DistanceUnit.INCH) > 2.0){
+                lift.setPower(-1.0);
+                //shrinks the arm back down
             }
 
             for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);stop>System.nanoTime();) {
