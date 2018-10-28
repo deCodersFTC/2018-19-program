@@ -32,13 +32,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -63,7 +59,10 @@ import java.util.concurrent.TimeUnit;
 
 @Autonomous(name="Hook Descend Code", group="Linear Opmode")
 //@Disabled
-public class AutonomousCode extends LinearOpMode {
+public class AutonomousHookDescent extends LinearOpMode implements Runnable {
+
+    // thread to run the autonomous code
+    private Thread auto;
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -73,105 +72,112 @@ public class AutonomousCode extends LinearOpMode {
     private DcMotor LeftDriveBack = null;
     private DcMotor RightDriveBack = null;
 
-    private static double ZERO_HEIGHT = 5.11;
-    private static double HOOK_OFFSET = 0.25;
-    private static int ARM_LIFT_OFFSET_TIME = 1;
-    private static int MOVE_TIME = 3;
-    private static int BACKUP_TIME = 5;
+    DistanceSensor heightSensor;
 
-    DistanceSensor sensorRange;
+    public AutonomousHookDescent() {
+        auto = new Thread(this);
+    }
+
+    public void run() {
+        autonomousOperation();
+    }
+
+
+    private void autonomousOperation() {
+        // keep extending arm till the all 4 wheels touch the floor
+        while (heightSensor.getDistance(DistanceUnit.INCH) > DriveConstants.ZERO_HEIGHT){
+            lift.setPower(1.0);
+            //descending robot
+        }
+        // robot has landed.
+        if (Thread.interrupted()) {
+            return;
+        }
+
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // keep moving arm up further for additional ARM_LIFT_OFFSE_TIME
+        lift.setTargetPosition(DriveConstants.ARM_LIFT_OFFSET);
+
+        if (Thread.interrupted()) {
+            return;
+        }
+
+        // move the robot to the side to extricate the arm from the
+        // lander for MOVE_TIME seconds
+        for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(DriveConstants.MOVE_TIME);stop>System.nanoTime();) {
+            LeftDriveFront.setPower(1.0);
+            RightDriveFront.setPower(-1.0);
+            LeftDriveBack.setPower(-1.0);
+            RightDriveBack.setPower(1.0);
+            //uses the mecanum wheels to move robot sideways and out of the hook for MOVE_TIME seconds
+        }
+
+        while (heightSensor.getDistance(DistanceUnit.INCH) > DriveConstants.ZERO_HEIGHT){
+            lift.setPower(-1.0);
+            //shrinks the arm back down
+        }
+
+        for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(DriveConstants.BACKUP_TIME);stop>System.nanoTime();) {
+            LeftDriveFront.setPower(-1.0);
+            RightDriveFront.setPower(-1.0);
+            LeftDriveBack.setPower(-1.0);
+            RightDriveBack.setPower(-1.0);
+            //reverses the robot and backes it away from the tower for 5 seconds
+        }
+
+        // Show the elapsed game time and wheel power.
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Distance from Ground", heightSensor.getDistance(DistanceUnit.INCH));
+        telemetry.update();
+
+    }
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        lift = hardwareMap.get(DcMotor.class, "lift");
-        sensorRange = hardwareMap.get(DistanceSensor.class, "range");
-
-        LeftDriveFront = hardwareMap.get(DcMotor.class, "LeftDriveFront");
-        RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
-        LeftDriveBack = hardwareMap.get(DcMotor.class, "LeftDriveBack");
-        RightDriveBack = hardwareMap.get(DcMotor.class, "RightDriveBack");
-
+        // Lift initialization
+        lift = hardwareMap.get(DcMotor.class, DriveConstants.HOOK_DEVICE_NAME);
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift.setDirection(DcMotor.Direction.FORWARD);
+
+        // Heght sensor
+        heightSensor = hardwareMap.get(DistanceSensor.class, DriveConstants.HEIGHT_SENSOR_NAME);
+
+        // wheel initialization
+        LeftDriveFront = hardwareMap.get(DcMotor.class, DriveConstants.LEFT_FRONT_WHEEL_NAME);
+        RightDriveFront = hardwareMap.get(DcMotor.class, DriveConstants.RIGHT_FRONT_WHEEL_NAME);
+        LeftDriveBack = hardwareMap.get(DcMotor.class, DriveConstants.LEFT_REAR_WHEEL_NAME);
+        RightDriveBack = hardwareMap.get(DcMotor.class, DriveConstants.RIGHT_REAR_WHEEL_NAME);
+
 
         LeftDriveFront.setDirection(DcMotor.Direction.FORWARD);
         RightDriveFront.setDirection(DcMotor.Direction.REVERSE);
         LeftDriveBack.setDirection(DcMotor.Direction.FORWARD);
         RightDriveBack.setDirection(DcMotor.Direction.REVERSE);
 
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
 
-        // run until the end of the match (driver presses STOP)
+        // run until the end of the match (driver presses STOP
+        // or the timer expires)
+
+        // start the autonomous operation
+        auto.start();
         while (opModeIsActive()) {
-            // keep extending arm till the all 4 wheels touch the floor
-            while (sensorRange.getDistance(DistanceUnit.INCH) > ZERO_HEIGHT){
-                lift.setPower(1.0);
-                //descending robot
-            }
-            // robot has landed.
-
-            // keep moving arm up further for additional ARM_LIFT_OFFSE_TIME
-            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(ARM_LIFT_OFFSET_TIME);stop>System.nanoTime();) {
-                lift.setPower(1.0);
-                //raising arm to right position for unlatching
-            }
-
-            // move the robot to the side to extricate the arm from the
-            // lander for MOVE_TIME seconds
-            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(MOVE_TIME);stop>System.nanoTime();) {
-                LeftDriveFront.setPower(1.0);
-                RightDriveFront.setPower(-1.0);
-                LeftDriveBack.setPower(-1.0);
-                RightDriveBack.setPower(1.0);
-                //uses the mecanum wheels to move robot sideways and out of the hook for MOVE_TIME seconds
-            }
-            while (sensorRange.getDistance(DistanceUnit.INCH) > ZERO_HEIGHT){
-                lift.setPower(-1.0);
-                //shrinks the arm back down
-            }
-
-            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(BACKUP_TIME);stop>System.nanoTime();) {
-                LeftDriveFront.setPower(-1.0);
-                RightDriveFront.setPower(-1.0);
-                LeftDriveBack.setPower(-1.0);
-                RightDriveBack.setPower(-1.0);
-                //reverses the robot and backes it away from the tower for 5 seconds
-            }
-
-//            if (sensorRange.getDistance(DistanceUnit.INCH) < 3.0){
-//                //if the sensor is less than 3 inches of the ground this code will trigger
-//                lift.setPower(0.0);
-//                //stop the arm from moving any more and lock it in place
-//                LeftDriveFront.setPower(1.0);
-//                RightDriveFront.setPower(-1.0);
-//                LeftDriveBack.setPower(1.0);
-//                RightDriveBack.setPower(-1.0);
-//                //needs to be accomplished: figure out how to make multiple actions happen at the same time for a set time
-//                //make motors turn and bring the hook out of the tower by turning sideways
-//            }
-//
-//            else{
-//                //otherwise run normal code
-//                lift.setPower(1.0);
-//                Thread.sleep(9000);
-//                //robot is descending and will hit the ground
-//                lift.setPower(-1.0);
-//                //shrink the hook arm back down so that it is compact
-//
-//
-//            }
-
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Distance from Ground", sensorRange.getDistance(DistanceUnit.INCH));
-            telemetry.update();
         }
+
+        // stop the robot operation.
+        auto.interrupt();
+        lift.setPower(0);
+
     }
 }

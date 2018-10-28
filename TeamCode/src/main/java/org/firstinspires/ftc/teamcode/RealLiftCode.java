@@ -62,31 +62,28 @@ public class RealLiftCode extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor lift = null;
     private DistanceSensor heightSensor;
-    DigitalChannel digitalTouch;
 
     private DcMotorSimple.Direction direction = DcMotor.Direction.FORWARD;
-    private boolean atTop = false, atBottom = false;
-    private boolean vPadEnabled = true;
-    private static double zeroHeight = 5.11;
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        digitalTouch = hardwareMap.get(DigitalChannel.class, "sensor_digital");
-        digitalTouch.setMode(DigitalChannel.Mode.INPUT);
-
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        lift  = hardwareMap.get(DcMotor.class, "Hook");
-        heightSensor = hardwareMap.get(DistanceSensor.class, "Height");
-
+        lift  = hardwareMap.get(DcMotor.class, DriveConstants.HOOK_DEVICE_NAME);
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
         lift.setDirection(direction);
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        heightSensor = hardwareMap.get(DistanceSensor.class, DriveConstants.HEIGHT_SENSOR_NAME);
+
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -97,54 +94,20 @@ public class RealLiftCode extends LinearOpMode {
             telemetry.addData("B a=", gamepad1.a);
             telemetry.addData("B y=", gamepad1.y);
             telemetry.addData("Direction=", direction);
-            telemetry.addData("vpad=", vPadEnabled);
+            telemetry.addData("mencoder=", lift.getTargetPosition());
 
-            double liftPower;
-
-            // if the magSensor is on, find direction and set atTop or atBottom.
-            if (digitalTouch.getState() == false) {
-                telemetry.addData("Magnet is", digitalTouch.getState());
-                telemetry.addData("vPad is", vPadEnabled);
-                telemetry.addData("Limit", "hit");
-                if (atTop == false && atBottom == false) {
-                    if (direction == DcMotor.Direction.REVERSE) {
-                        atTop = true;
-                        direction = DcMotor.Direction.FORWARD;
-                        lift.setPower(1);
-                    } else {
-                        atBottom = true;
-                        direction = DcMotor.Direction.REVERSE;
-                        lift.setPower(-1);
-                    }
-                    vPadEnabled = false;
-                }
+            if (gamepad1.a == true) {
+                direction = DcMotor.Direction.REVERSE;
+                lift.setPower(-1);
+            } else if (gamepad1.y == true) {
+                direction = DcMotor.Direction.FORWARD;
+                lift.setPower(1);
             } else {
-                telemetry.addData("Magnet is", digitalTouch.getState());
-                if(atTop || atBottom) {
-                    lift.setPower(0);
-                    atTop = atBottom = false;
-                    telemetry.addData("Limit", "clear");
-                }
-
-                if(vPadEnabled == true) {
-                    if (gamepad1.a == true) {
-                        direction = DcMotor.Direction.REVERSE;
-                        lift.setPower(-1);
-                    } else if (gamepad1.y == true) {
-                        direction = DcMotor.Direction.FORWARD;
-                        lift.setPower(1);
-                    } else {
-                        lift.setPower(0);
-                    }
-                } else {
-                    // when the hand is removed, then reenable the pad
-                    if(gamepad1.a == false && gamepad1.y == false) {
-                        vPadEnabled = true;
-                    }
-                }
+                lift.setPower(0);
             }
 
-            //telemetry.addData("Status", "Run Time: " + runtime.toString());
+
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Motor Power", lift.getPower());
             telemetry.addData("Distance from Ground", heightSensor.getDistance(DistanceUnit.INCH));
             telemetry.update();
