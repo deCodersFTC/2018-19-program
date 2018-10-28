@@ -73,6 +73,11 @@ public class AutonomousCode extends LinearOpMode {
     private DcMotor LeftDriveBack = null;
     private DcMotor RightDriveBack = null;
 
+    private static double ZERO_HEIGHT = 5.11;
+    private static double HOOK_OFFSET = 0.25;
+    private static int ARM_LIFT_OFFSET_TIME = 1;
+    private static int MOVE_TIME = 3;
+    private static int BACKUP_TIME = 5;
 
     DistanceSensor sensorRange;
 
@@ -105,29 +110,34 @@ public class AutonomousCode extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
-            while (sensorRange.getDistance(DistanceUnit.INCH) > 6){
+            // keep extending arm till the all 4 wheels touch the floor
+            while (sensorRange.getDistance(DistanceUnit.INCH) > ZERO_HEIGHT){
                 lift.setPower(1.0);
                 //descending robot
             }
-            while (sensorRange.getDistance(DistanceUnit.INCH) <= 6.1){
+            // robot has landed.
+
+            // keep moving arm up further for additional ARM_LIFT_OFFSE_TIME
+            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(ARM_LIFT_OFFSET_TIME);stop>System.nanoTime();) {
                 lift.setPower(1.0);
                 //raising arm to right position for unlatching
             }
 
-            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);stop>System.nanoTime();) {
+            // move the robot to the side to extricate the arm from the
+            // lander for MOVE_TIME seconds
+            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(MOVE_TIME);stop>System.nanoTime();) {
                 LeftDriveFront.setPower(1.0);
                 RightDriveFront.setPower(-1.0);
                 LeftDriveBack.setPower(-1.0);
                 RightDriveBack.setPower(1.0);
-                //uses the mecanum wheels to move robot sideways and out of the hook for 3 seconds
+                //uses the mecanum wheels to move robot sideways and out of the hook for MOVE_TIME seconds
             }
-            while (sensorRange.getDistance(DistanceUnit.INCH) > 6){
+            while (sensorRange.getDistance(DistanceUnit.INCH) > ZERO_HEIGHT){
                 lift.setPower(-1.0);
                 //shrinks the arm back down
             }
 
-            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);stop>System.nanoTime();) {
+            for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(BACKUP_TIME);stop>System.nanoTime();) {
                 LeftDriveFront.setPower(-1.0);
                 RightDriveFront.setPower(-1.0);
                 LeftDriveBack.setPower(-1.0);
