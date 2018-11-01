@@ -22,7 +22,7 @@ public class HookDrive extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor LeftDriveFront = null;
     private DcMotor RightDriveFront = null;
-    private DcMotor LeftDriveBack = null;
+    private DcMotor LeftDriveBackW = null;
     private DcMotor RightDriveBack = null;
     private DcMotor lift = null;
     DigitalChannel digitalTouch;
