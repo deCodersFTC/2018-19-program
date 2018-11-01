@@ -72,6 +72,8 @@ public class AutonomousHookDescent extends LinearOpMode implements Runnable {
     private DcMotor LeftDriveBack = null;
     private DcMotor RightDriveBack = null;
 
+    public boolean bob = false;
+
     DistanceSensor heightSensor;
 
     public AutonomousHookDescent() {
@@ -85,6 +87,8 @@ public class AutonomousHookDescent extends LinearOpMode implements Runnable {
 
     private void autonomousOperation() {
         // keep extending arm till the all 4 wheels touch the floor
+
+
         while (heightSensor.getDistance(DistanceUnit.INCH) > DriveConstants.ZERO_HEIGHT){
             lift.setPower(1.0);
             //descending robot
@@ -134,8 +138,12 @@ public class AutonomousHookDescent extends LinearOpMode implements Runnable {
 
     }
 
+
     @Override
     public void runOpMode() {
+
+        bob = true;
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
