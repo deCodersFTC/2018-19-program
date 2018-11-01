@@ -5,11 +5,14 @@ import android.os.Bundle;
 import android.widget.*;
 import android.os.Handler;
 
+import org.firstinspires.ftc.teamcode.AutonomousHookDescent;
+
 public class MainActivity extends AppCompatActivity {
 
     long startTime;
     Thread task;
     TextView mtvtimer;
+    public AutonomousHookDescent AHD  = new AutonomousHookDescent();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,17 +36,11 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("************* In startTimer *************");
         startTime = System.currentTimeMillis();
         task = new Thread() {
-            @Override
             public void run() {
                 System.out.println("IN task.......");
-                while (!stop) {
-                    String timeString = getTimeString(System.currentTimeMillis());
-                    System.out.println("AAAAAA " + timeString);
-                    try {
-                        Thread.sleep(1000); // robot work instead
-                    } catch (Exception e) {
-                    }
-                }
+                AHD.run();
+                AHD.runOpMode();
+
             }
         };
 
@@ -51,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("BBBBBB " +
                 getTimeString(System.currentTimeMillis()));
         task.start();
-        while (!stop) {
+        while (AHD.bob) {
             String timeString = getTimeString(System.currentTimeMillis());
             System.out.println("BBBBB " + timeString);
             long millis = System.currentTimeMillis() - startTime;
