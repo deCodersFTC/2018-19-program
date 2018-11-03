@@ -34,8 +34,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 
 @Autonomous(name="Hook Descend Code", group="Linear Opmode")
 //@Disabled
-public class AutonomousHookDescent extends LinearOpMode {
+public class AutonomousHookDescentWithStop extends LinearOpMode {
 
     // thread to run the autonomous code
     private Thread auto;
@@ -76,7 +76,7 @@ public class AutonomousHookDescent extends LinearOpMode {
 
     static DistanceSensor heightSensor;
 
-    public AutonomousHookDescent() {
+    public AutonomousHookDescentWithStop() {
         //auto = new Thread(this);
     }
 
