@@ -48,6 +48,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.Locale;
@@ -81,6 +82,11 @@ public class AutonomousWithStop extends LinearOpMode {
             (WHEEL_DIAMETER_INCHES * 3.1415);
     static final double     DRIVE_SPEED             = 1;
     static final double     TURN_SPEED              = 0.7;
+
+
+    // Margin of error values
+    static final double     MOE_ANGLE               = 0.05;
+    static final double     MOE_HEIGHT              = 0.01;
 
     //declare robot with pushbot hardware
     private HardwarePushbot robot   = new HardwarePushbot();   // Use a Pushbot's hardware
@@ -150,24 +156,24 @@ public class AutonomousWithStop extends LinearOpMode {
         telemetry.addData("Status", "Resetting Encoders");    //
         telemetry.update();
 
-        robot.LeftDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.RightDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.LeftDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.RightDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
-        robot.LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
         // Send telemetry message to indicate successful Encoder reset
         telemetry.addData("Path0",  "Starting at %7d :%7d :%7d :%7d",
-                robot.LeftDriveFront.getCurrentPosition(),
-                robot.RightDriveFront.getCurrentPosition(),
-                robot.LeftDriveBack.getCurrentPosition(),
-                robot.RightDriveBack.getCurrentPosition());
+                leftDriveFront.getCurrentPosition(),
+                rightDriveFront.getCurrentPosition(),
+                leftDriveBack.getCurrentPosition(),
+                rightDriveBack.getCurrentPosition());
         telemetry.update();
     }
 
@@ -180,7 +186,7 @@ public class AutonomousWithStop extends LinearOpMode {
 
     private void initColorSensor() {
         sensorColor = hardwareMap.get(ColorSensor.class, "Color");
-        sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color_distance");
+        sensorDistance = hardwareMap.get(DistanceSensor.class, "Color");
 
         float hsvValues[] = {0F, 0F, 0F};
 
@@ -241,27 +247,27 @@ public class AutonomousWithStop extends LinearOpMode {
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            newLeftFrontTarget = robot.LeftDriveFront.getCurrentPosition() + (int)(LeftFrontInches * COUNTS_PER_INCH);
-            newRightFrontTarget = robot.RightDriveFront.getCurrentPosition() + (int)(RightFrontInches * COUNTS_PER_INCH);
-            newLeftBackTarget = robot.LeftDriveBack.getCurrentPosition() + (int)(LeftBackInches * COUNTS_PER_INCH);
-            newRightBackTarget = robot.RightDriveBack.getCurrentPosition() + (int)(RightBackInches * COUNTS_PER_INCH);
-            robot.LeftDriveFront.setTargetPosition(newLeftFrontTarget);
-            robot.RightDriveFront.setTargetPosition(newRightFrontTarget);
-            robot.LeftDriveBack.setTargetPosition(newLeftBackTarget);
-            robot.RightDriveBack.setTargetPosition(newRightBackTarget);
+            newLeftFrontTarget = leftDriveFront.getCurrentPosition() + (int)(LeftFrontInches * COUNTS_PER_INCH);
+            newRightFrontTarget = rightDriveFront.getCurrentPosition() + (int)(RightFrontInches * COUNTS_PER_INCH);
+            newLeftBackTarget = leftDriveBack.getCurrentPosition() + (int)(LeftBackInches * COUNTS_PER_INCH);
+            newRightBackTarget = rightDriveBack.getCurrentPosition() + (int)(RightBackInches * COUNTS_PER_INCH);
+            leftDriveFront.setTargetPosition(newLeftFrontTarget);
+            rightDriveFront.setTargetPosition(newRightFrontTarget);
+            leftDriveBack.setTargetPosition(newLeftBackTarget);
+            rightDriveBack.setTargetPosition(newRightBackTarget);
 
             // Turn On RUN_TO_POSITION
-            robot.LeftDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.RightDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.LeftDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.RightDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            leftDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            leftDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // reset the timeout time and start motion.
             runtime.reset();
-            robot.LeftDriveFront.setPower(Math.abs(speed));
-            robot.RightDriveFront.setPower(Math.abs(speed));
-            robot.LeftDriveBack.setPower(Math.abs(speed));
-            robot.RightDriveBack.setPower(Math.abs(speed));
+            leftDriveFront.setPower(Math.abs(speed));
+            rightDriveFront.setPower(Math.abs(speed));
+            leftDriveBack.setPower(Math.abs(speed));
+            rightDriveBack.setPower(Math.abs(speed));
 
             // keep looping while we are still active, and there is time left, and both motors are running.
             // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
@@ -271,15 +277,15 @@ public class AutonomousWithStop extends LinearOpMode {
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
-                    (robot.LeftDriveFront.isBusy() && robot.RightDriveFront.isBusy()&& robot.LeftDriveBack.isBusy() && robot.RightDriveBack.isBusy())) {
+                    (leftDriveFront.isBusy() && rightDriveFront.isBusy()&& leftDriveBack.isBusy() && rightDriveBack.isBusy())) {
 
                 // Display it for the driver.
                 telemetry.addData("Path1",  "Running to %7d :%7d :7d :7d", newLeftFrontTarget,  newRightFrontTarget, newLeftBackTarget,  newRightBackTarget);
                 telemetry.addData("Path2",  "Running at %7d :%7d :7d :7d",
-                        robot.LeftDriveFront.getCurrentPosition(),
-                        robot.RightDriveFront.getCurrentPosition(),
-                        robot.LeftDriveBack.getCurrentPosition(),
-                        robot.RightDriveBack.getCurrentPosition());
+                        leftDriveFront.getCurrentPosition(),
+                        rightDriveFront.getCurrentPosition(),
+                        leftDriveBack.getCurrentPosition(),
+                        rightDriveBack.getCurrentPosition());
                 telemetry.update();
 
             }
@@ -297,16 +303,16 @@ public class AutonomousWithStop extends LinearOpMode {
     }
 
     public void stopWheels() {
-        robot.LeftDriveFront.setPower(0);
-        robot.RightDriveFront.setPower(0);
-        robot.LeftDriveBack.setPower(0);
-        robot.RightDriveBack.setPower(0);
+        leftDriveFront.setPower(0);
+        rightDriveFront.setPower(0);
+        leftDriveBack.setPower(0);
+        rightDriveBack.setPower(0);
 
         // Turn off RUN_TO_POSITION
-        robot.LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void driveForward(double distance){
@@ -318,59 +324,51 @@ public class AutonomousWithStop extends LinearOpMode {
      * @param speedRatio 1 is fastest, 0 is stopped, -1 goes backwards
      */
     public void drive(float speedRatio) {
+
         if(speedRatio < -1 || speedRatio > 1) {
 //            Log.e("Invalid speed value:" + speedRatio);
             return;
         }
 
-        robot.LeftDriveFront.setPower(speedRatio);
-        robot.RightDriveFront.setPower(-speedRatio);
-        robot.LeftDriveBack.setPower(-speedRatio);
-        robot.RightDriveBack.setPower(speedRatio);
+        leftDriveFront.setPower(speedRatio);
+        rightDriveFront.setPower(-speedRatio);
+        leftDriveBack.setPower(-speedRatio);
+        rightDriveBack.setPower(speedRatio);
     }
 
-    public void turn(float speedRatio){
+    /**
+     * Turns the bot given the ratio.
+     * @param turnRatio -1 turns 90 deg left, 0=straight, 1=turn 90 deg right
+     */
+    public void turn(float turnRatio){
         //-1 turns right, 0 straight, 1 turns left, anything else does nothing
-        if(speedRatio < -1 || speedRatio > 1){
-//            Log.e("Invalid speed value:" + speedRatio);
+        if(turnRatio < -1 || turnRatio > 1){
+//            Log.e("Invalid turn value:" + turnRatio);
             return;
         }
 
-        if (speedRatio == -1){
-            robot.LeftDriveFront.setPower(-speedRatio);
-            robot.RightDriveFront.setPower(0);
-            robot.LeftDriveBack.setPower(-speedRatio);
-            robot.RightDriveBack.setPower(0);
-//            -1 turns right
-        } else if (speedRatio == 1){
-            robot.LeftDriveFront.setPower(0);
-            robot.RightDriveFront.setPower(speedRatio);
-            robot.LeftDriveBack.setPower(0);
-            robot.RightDriveBack.setPower(speedRatio);
-//            1 turns left
-        } else{
-            robot.LeftDriveFront.setPower(0);
-            robot.RightDriveFront.setPower(0);
-            robot.LeftDriveBack.setPower(0);
-            robot.RightDriveBack.setPower(0);
-//            0 and anything else does not move the robot
+        double deg = turnRatio * 90;
+        if(deg < 0) {
+            turnLeft(deg);
+        } else {
+            turnRight(deg);
         }
     }
 
     /**
      * Slide robot at a given speed ratio
-     * @param speedRatio 1 is right, 0 is stopped, -1 goes left
+     * @param slideRatio 1 is right, 0 is stopped, -1 goes left
      */
-    public void slide(float speedRatio) {
-        if(speedRatio < -1 || speedRatio > 1) {
+    public void slide(float slideRatio) {
+        if(slideRatio < -1 || slideRatio > 1) {
 //            Log.e("Invalid speed value:" + speedRatio);
             return;
         }
 
-        robot.LeftDriveFront.setPower(-speedRatio);
-        robot.RightDriveFront.setPower(speedRatio);
-        robot.LeftDriveBack.setPower(speedRatio);
-        robot.RightDriveBack.setPower(-speedRatio);
+        leftDriveFront.setPower(-slideRatio);
+        rightDriveFront.setPower(slideRatio);
+        leftDriveBack.setPower(slideRatio);
+        rightDriveBack.setPower(-slideRatio);
     }
 
 
@@ -398,20 +396,26 @@ public class AutonomousWithStop extends LinearOpMode {
 
     public void driveForwardUntil(UntilCondition u) {
         // record heading from IMU
-        Orientation o = imu.getAngularOrientation();
-        telemetry.addData("Current Heading:", o);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        float origHeading = angles.firstAngle;
 
-        // TO-DO: Align orientation each iteration
+        telemetry.addData("Current Heading:", origHeading);
+
         while(u.until()) {
             if(!ifStopped()) {
-                // drive forward keeping heading constant
-                drive(1);
+                float adjHeading = imu.getAngularOrientation().firstAngle - origHeading;
+                if((adjHeading * adjHeading) < MOE_ANGLE) {
+                    // drive forward keeping heading constant
+                    drive(1);
+                } else {
+                    turn(adjHeading);
+                }
             }
         }
         stopWheels();
     }
 
-    public void slideRight(UntilCondition u) {
+    public void slideRightUntil(UntilCondition u) {
         while(u.until()) {
             if(!ifStopped()) {
                 // drive forward keeping heading constant
@@ -492,6 +496,12 @@ public class AutonomousWithStop extends LinearOpMode {
                 });
     }
 
+    private void lowerHook(UntilCondition u) {
+        while(u.until()) {
+
+        }
+    }
+
     //----------------------------------------------------------------------------------------------
     // Formatting
     //----------------------------------------------------------------------------------------------
@@ -532,6 +542,24 @@ public class AutonomousWithStop extends LinearOpMode {
 
         waitForStart();
         runtime.reset();
+
+        lowerHook(new UntilCondition() {
+                    @Override
+                    public boolean until() {
+                        double x = heightSensor.getDistance(DistanceUnit.INCH) - DriveConstants.ZERO_HEIGHT;
+                        return (x * x) < MOE_HEIGHT;
+                    }
+                });
+
+        // the following is the state of the autonomous mode
+        // 1. Descent
+        // 2. Slide left
+        // 3. Move forward 3.5 ft
+        // 4. Scan for mineral using Color sensor
+        // 5. Knock mineral by advancing bot
+        // 6. Go forward to the wall
+        // 7. Turn right
+        // 8. Move forward until the bot senses black color (crater)
 
 /*
  * Initial sample code
