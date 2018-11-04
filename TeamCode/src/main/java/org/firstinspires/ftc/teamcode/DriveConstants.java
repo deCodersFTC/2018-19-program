@@ -1,3 +1,7 @@
+/**
+ * Copyright 2018 deCoders FTC
+ */
+
 package org.firstinspires.ftc.teamcode;
 
 public class DriveConstants {
@@ -15,6 +19,10 @@ public class DriveConstants {
 
     public static String HOOK_DEVICE_NAME = "Hook";
     public static String HEIGHT_SENSOR_NAME = "Height";
+
+    public static String FRONT_SENOR_NAME = "FrontD";
+    public static String REAR_SENSOR_NAME = "RearD";
+    public static String RIGHT_SENSOR_NAME = "RightD";
 
     public static String LEFT_FRONT_WHEEL_NAME = "LeftDriveFront";
     public static String RIGHT_FRONT_WHEEL_NAME = "RightDriveFront";
