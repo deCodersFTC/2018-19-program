@@ -414,7 +414,25 @@ public class AutonomousWithStop extends LinearOpMode {
         }
         stopWheels();
     }
+    public void slideLeftStep2 {
+        autStep2Angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        float origHeading2 = angles.autStep2Angles;
+        telemetry.addData("Current Heading:", origHeading2);
 
+            if (!ifStopped()) {
+                float adjHeading2 = imu.getAngularOrientation().firstAngle - origHeading;
+                while (slideLeftUntil()){
+                    telemetry.addData("Current Deviation", adjHeading2);
+                    telemtry.update();
+                }
+                if ((adjHeading2 * adjHeading2) < MOE_ANGLE) {
+                    // drive forward keeping heading constant
+                    slideLeft(3);
+                } else {
+                    turn(adjHeading2);
+                }
+            }
+    }
     public void slideRightUntil(UntilCondition u) {
         while(u.until()) {
             if(!ifStopped()) {
@@ -553,7 +571,14 @@ public class AutonomousWithStop extends LinearOpMode {
 
         // the following is the state of the autonomous mode
         // 1. Descent
+
         // 2. Slide left
+        slideLeftStep2();
+
+
+
+
+
         // 3. Move forward 3.5 ft
         // 4. Scan for mineral using Color sensor
         // 5. Knock mineral by advancing bot
