@@ -91,16 +91,24 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
         telemetry.addData("Status", "Resetting Encoders");    //
         telemetry.update();
 
-        robot.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.LeftDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.RightDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.LeftDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.RightDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        robot.LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
         // Send telemetry message to indicate successful Encoder reset
         telemetry.addData("Path0",  "Starting at %7d :%7d",
-                          robot.leftDrive.getCurrentPosition(),
-                          robot.rightDrive.getCurrentPosition());
+                          robot.LeftDriveFront.getCurrentPosition(),
+                          robot.RightDriveFront.getCurrentPosition(),
+                          robot.LeftDriveBack.getCurrentPosition(),
+                          robot.RightDriveBack.getCurrentPosition());
         telemetry.update();
 
         // Wait for the game to start (driver presses PLAY)
@@ -112,9 +120,6 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
         encoderDrive(TURN_SPEED,   12, -12, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
         encoderDrive(DRIVE_SPEED, -24, -24, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
 
-        robot.leftClaw.setPosition(1.0);            // S4: Stop and close the claw.
-        robot.rightClaw.setPosition(0.0);
-        sleep(1000);     // pause for servos to move
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -140,8 +145,8 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
             // Determine new target position, and pass to motor controller
             newLeftTarget = robot.leftDrive.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH);
             newRightTarget = robot.rightDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
-            robot.leftDrive.setTargetPosition(newLeftTarget);
-            robot.rightDrive.setTargetPosition(newRightTarget);
+            robot.LeftDriveFront.setTargetPosition(newLeftTarget);
+            robot.RightDriveFront.setTargetPosition(newRightTarget);
 
             // Turn On RUN_TO_POSITION
             robot.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);

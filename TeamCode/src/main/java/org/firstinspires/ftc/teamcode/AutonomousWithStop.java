@@ -416,20 +416,20 @@ public class AutonomousWithStop extends LinearOpMode {
     }
     public void slideLeftStep2 {
         autStep2Angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        float origHeading2 = angles.autStep2Angles;
-        telemetry.addData("Current Heading:", origHeading2);
+        float origRecord = angles.autStep2Angles;
+        telemetry.addData("Current Heading:", origRecord);
 
             if (!ifStopped()) {
-                float adjHeading2 = imu.getAngularOrientation().firstAngle - origHeading;
+                float devHeading = imu.getAngularOrientation().firstAngle - origRecord;
                 while (slideLeftUntil()){
-                    telemetry.addData("Current Deviation", adjHeading2);
+                    telemetry.addData("Current Deviation", devHeading);
                     telemtry.update();
                 }
-                if ((adjHeading2 * adjHeading2) < MOE_ANGLE) {
+                if ((devHeading * devHeading) < MOE_ANGLE) {
                     // drive forward keeping heading constant
                     slideLeft(3);
                 } else {
-                    turn(adjHeading2);
+                    turn(-devHeading);
                 }
             }
     }
