@@ -571,6 +571,17 @@ public class AutonomousWithStop extends LinearOpMode {
 
         // the following is the state of the autonomous mode
         // 1. Descent
+        lowerHook(new UntilCondition() {
+            @Override
+            public boolean until() {
+                double x = heightSensor.getDistance(DistanceUnit.INCH) - DriveConstants.ZERO_HEIGHT;
+                if (((Math.abs(x)) < MOE_HEIGHT) == true){
+                    lift.setPower(1.0);
+                }else{
+                    lift.setPower(0);
+                }
+                return (x * x) < MOE_HEIGHT;
+            });
 
         // 2. Slide left
         slideLeftStep2();
