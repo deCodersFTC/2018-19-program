@@ -61,6 +61,24 @@ public class HardwarePushbot
     public DcMotor  RightDriveBack;
     public DcMotor  armLift;
 
+    public static double ZERO_HEIGHT = 5.11;
+    public static double HOOK_OFFSET = 0.25;
+    public static int ARM_LIFT_OFFSET = 5;
+    public static int MOVE_TIME = 3;
+    public static int BACKUP_TIME = 5;
+
+    public static String HOOK_DEVICE_NAME = "lift";
+    public static String HEIGHT_SENSOR_NAME = "Height";
+
+    public static String LEFT_FRONT_WHEEL_NAME = "LeftDriveFront";
+    public static String RIGHT_FRONT_WHEEL_NAME = "RightDriveFront";
+    public static String LEFT_REAR_WHEEL_NAME = "LeftDriveBack";
+    public static String RIGHT_REAR_WHEEL_NAME = "RightDriveBack";
+
+    public static String FRONT_SENOR_NAME = "FrontD";
+    public static String REAR_SENSOR_NAME = "RearD";
+    public static String RIGHT_SENSOR_NAME = "RightD";
+
 
 
     /* local OpMode members. */
@@ -87,14 +105,14 @@ public class HardwarePushbot
         RightDriveFront.setDirection(DcMotor.Direction.REVERSE);
         LeftDriveBack.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         RightDriveBack.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        armLift.setDirection(DcMotor.Direction.REVERSE);
+        //armLift.setDirection(DcMotor.Direction.REVERSE);
 
         // Set all motors to zero power
         LeftDriveFront.setPower(0);
         RightDriveFront.setPower(0);
         LeftDriveBack.setPower(0);
         RightDriveBack.setPower(0);
-        armLift.setPower(0);
+        //armLift.setPower(0);
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
@@ -102,7 +120,7 @@ public class HardwarePushbot
         RightDriveFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         LeftDriveBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         RightDriveBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        armLift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        // armLift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
 
@@ -110,4 +128,5 @@ public class HardwarePushbot
 
     }
 }
+
 
