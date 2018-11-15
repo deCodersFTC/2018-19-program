@@ -539,6 +539,7 @@ public class AutonomousHookDescent extends LinearOpMode {
         lowerHook(new UntilCondition() {
             @Override
             public boolean until() {
+                initBot();
                 double x = heightSensor.getDistance(DistanceUnit.INCH) - robot.ZERO_HEIGHT;
                 if (((Math.abs(x)) < MOE_HEIGHT) == true) {
                     lift.setPower(1.0);
