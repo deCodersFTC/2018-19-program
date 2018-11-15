@@ -53,35 +53,172 @@ import com.qualcomm.robotcore.util.Range;
 
 @Autonomous(name="Basic: Iterative OpMode", group="Iterative Opmode")
 @Disabled
-public class DesProt extends OpMode
-{
+public class DesProt extends OpMode {
+    public DcMotor  LeftDriveFront = null;
+    public DcMotor  RightDriveFront = null;
+    public DcMotor  LeftDriveBack = null;
+    public DcMotor  RightDriveBack = null;
+
+    public DcMotor  lift = null;
+
+    public DistanceSensor heightSensor = null;
+    public DistanceSensor frontSensor = null;
+    public DistanceSensor rearSensor = null;
+    public DistanceSensor rightSensor = null;
+
+    public ColorSensor sensorColor = null;
+    public DistanceSensor sensorDistance = null;
+
+    BNO055IMU imu;
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
 
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
+
+    //Encoder Variable
+    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
+    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
+    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     DRIVE_SPEED             = 1;
+    static final double     TURN_SPEED              = 1;
+    static final double     SLIDE_SPEED             = 1;
+
+
+
     @Override
     public void init() {
+        //InitWheels
+        LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
+        RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
+        LeftDriveBack    = hardwareMap.get(DcMotor.class, "LeftDriveBack");
+        RightDriveBack  = hardwareMap.get(DcMotor.class, "RightDriveBack");
+        LeftDriveFront.setDirection(DcMotor.Direction.FORWARD);
+        RightDriveFront.setDirection(DcMotor.Direction.REVERSE);
+        LeftDriveBack.setDirection(DcMotor.Direction.FORWARD);
+        RightDriveBack.setDirection(DcMotor.Direction.REVERSE);
+
+        LeftDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RightDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LeftDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RightDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+
+        LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //InitLift
+        lift = hardwareMap.get(DcMotor.class, "lift");
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift.setDirection(DcMotor.Direction.FORWARD);
+        //Init DistanceSensors
+        heightSensor=hardwareMap.get(DistanceSensor.class, "Height");
+        //frontSensor = hardwareMap.get(DistanceSensor.class, "FrontD");
+        rearSensor = hardwareMap.get(DistanceSensor.class, "RearD");
+        rightSensor = hardwareMap.get(DistanceSensor.class, "RightD");
+        //Init ColorSensor
+        sensorColor = hardwareMap.get(ColorSensor.class, "Color");
+        sensorDistance = hardwareMap.get(DistanceSensor.class, "Color");
         telemetry.addData("Status", "Initialized");
+        }
 
-
-
-
+    public void stopAllMotors(){
+    LeftDriveBack.setPower(0);
+    RightDriveBack.setPower(0);
+    LeftDriveFront.setPower(0);
+    RightDriveFront.setPower(0);
+    lift.setPower(0);
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
-     */
+
+    public void encoderDrive(double speed, double leftFrontInches, double rightFrontInches, double leftBackInches, double rightBackInches double timeoutS) {
+        int newLeftFrontTarget;
+        int newRightFrontTarget;
+        int newLeftBackTarget;
+        int newRightBackTarget
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            newLeftFrontTarget = LeftDriveFront.getCurrentPosition() + (int)(leftFrontInches * COUNTS_PER_INCH);
+            newRightFrontTarget = RightDriveFront.getCurrentPosition() + (int)(rightFrontInches * COUNTS_PER_INCH);
+            newLeftFrontTarget = LeftDriveBack.getCurrentPosition() + (int)(leftBackInches * COUNTS_PER_INCH);
+            newRightFrontTarget = RightDriveBack.getCurrentPosition() + (int)(rightBackInches * COUNTS_PER_INCH);
+
+
+            LeftDriveFront.setTargetPosition(newLeftFrontTarget);
+            RightDriveFront.setTargetPosition(newRightFrontTarget);
+            LeftDriveBack.setTargetPosition(newLeftBackTarget);
+            RightDriveBack.setTargetPosition(newRightBackTarget);
+
+            // Turn On RUN_TO_POSITION
+             LeftDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+             RightDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+             LeftDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+             RightDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+             LeftDriveBack.setPower(Math.abs(speed));
+             LeftDriveFront.setPower(Math.abs(speed));
+             RightDriveBack.setPower(Math.abs(speed));
+             RightDriveFront.setPower(Math.abs(speed));
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() && (runtime.seconds() < timeoutS) && ( LeftDriveBack.isBusy() &&  RightDriveBack.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("Path1",  "Running to %7d :%7d :%7d: %7d", newLeftBackTarget,  newLeftFrontTarget, newRightBackTarget, newRightFrontTarget);
+                telemetry.addData("Path2",  "Running at %7d :%7d :%7d :%7d", LeftDriveFront.getCurrentPosition(), LeftDriveBack.getCurrentPosition(), RightDriveBack.getCurrentPosition(), RightDriveFront.getCurrentPosition());
+                telemetry.update();
+            }
+
+            // Stop all motion;
+            stopAllMotors();
+            //Set to RUN_USING_ENCODER
+            LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        }
+    }
+
+    public void Forwards(double distance){
+        encoderDrive(DRIVE_SPEED,distance,distance,distance,distance);
+    }
+    public void Backwards(double distance){
+        encoderDrive(DRIVE_SPEED, -distance, -distance, -distance, -distance);
+    }
+    public void TurnRight(double degrees){
+        encoderDrive(TURN_SPEED, degrees, -degrees, degrees,- degrees);
+    }
+    public void TurnLeft(double degrees){
+        encoderDrive(TURN_SPEED, -degrees, degrees, -degrees, degrees);
+    }
+    public void slideRight(double distance){
+        encoderDrive(SLIDE_SPEED,distance,-distance,-distance,distance);
+    }
+    public void slideLeft(double distance){
+        encoderDrive(SLIDE_SPEED,-distance,distance,distance,-distance);
+    }
+
     @Override
     public void init_loop() {
+        stopAllMotors();
+        telemetry.addData("Status","Waiting for User ");
+        telemetry.update();
+
     }
 
-    /*
-     * Code to run ONCE when the driver hits PLAY
-     */
     @Override
     public void start() {
         runtime.reset();
@@ -92,39 +229,90 @@ public class DesProt extends OpMode
      */
     @Override
     public void loop() {
-        // Setup a variable for each drive wheel to save power level for telemetry
-        double leftPower;
-        double rightPower;
+        //Testing Encoders----> To Test on Next Date at Playing Field
+        Forwards(36);
+        Backwards(36);
+        TurnLeft(90);
+        TurnRight(90);
+        slideLeft(36);
+        slideRight(36);
 
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
+        //Actual Autonomous
+        //Slide hook out
+        Forwards(3);
+        //Turn away from lander
+        TurnLeft(90);
+        //Move away from lander
+        Forwards(18);
+        //Move so robot is facing right mineral
+        slideRight(18);
+        //Move closer to mineral
+        Forwards(9);
 
-        // POV Mode uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
-        double drive = -gamepad1.left_stick_y;
-        double turn  =  gamepad1.right_stick_x;
-        leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-        rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
 
-        // Tank Mode uses one stick to control each wheel.
-        // - This requires no math, but it is hard to drive forward slowly and keep straight.
-        // leftPower  = -gamepad1.left_stick_y ;
-        // rightPower = -gamepad1.right_stick_y ;
+        int whileScanning = 0;
+        boolean ifGold;
+        ifGold = false;
+        while(ifGold == false){
+            telemetry.addData("Red  ", sensorColor.red());
+            telemetry.addData("Green", sensorColor.green());
+            telemetry.addData("Blue ", sensorColor.blue());
 
-        // Send calculated power to wheels
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
+            if (205<=sensorColor.red()<=305 && 205<=sensorColor.green()<=305 && -50<=sensorColor.blue()<=50){
+                Forwards(10);
+                Backwards(10);
+                ifGold=true;
+            }
+            else{
+                slideRight(2.8);
+                whileScanning++;
+            }
 
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        }
+        if(whileScanning == 1 && ifGold==true){
+            slideLeft(0);
+            telemetry.addData("Gold Position", "1");
+            telemetry.update();
+        }
+        if(whileScanning == 2 && ifGold== true){
+            slideLeft(2.8);
+            telemetry.addData("Gold Position", "2");
+            telemetry.update();
+        }
+        if(whileScanning == 3 && ifGold==true){
+            slideLeft(5.6);
+            telemetry.addData("Gold Position", "3");
+            telemetry.update();
+        }
+
+        TurnLeft(35);
+        Forwards(10);
+        TurnLeft(35);
+        Forwards(70);
+        //Drop team Marker into Depot
+
+        Backwards(108);
+        //Reached Crater
+        telemetry.addData("Reached","Crater");
+        telemetry.update();        
+
+
+
+
+
+
+
+
+
+
     }
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     @Override
-    public void stop() {
+    public void stop(){
+        stopAllMotors();
     }
 
 }
