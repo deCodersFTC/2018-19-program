@@ -65,12 +65,24 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @Autonomous(name="deCoders AutStop", group="Linear Opmode")
-public class AutonomousWithStop extends LinearOpMode {
+public class AutonomousHookDescent extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
-    // hook
-    private DcMotor lift = null;
+    public DcMotor  LeftDriveFront = null;
+    public DcMotor  RightDriveFront = null;
+    public DcMotor  LeftDriveBack = null;
+    public DcMotor  RightDriveBack = null;
+
+    public DcMotor  lift = null;
+
+    public DistanceSensor heightSensor = null;
+
+    public ColorSensor sensorColor = null;
+    public DistanceSensor sensorDistance = null;
+
+    BNO055IMU imu;
+
 
     //create variables for encoders
     static final double COUNTS_PER_MOTOR_REV = 1440;    // eg: TETRIX Motor Encoder
@@ -90,36 +102,11 @@ public class AutonomousWithStop extends LinearOpMode {
     private HardwarePushbot robot = new HardwarePushbot();   // Use a Pushbot's hardware
 
 
-    // Drive
-    private DcMotor leftDriveFront = null;
-    private DcMotor rightDriveFront = null;
-    private DcMotor leftDriveBack = null;
-    private DcMotor rightDriveBack = null;
-
-
-    // height
-    private DistanceSensor heightSensor;
-
-    // distance sensors
-    private DistanceSensor frontSensor;
-    private DistanceSensor rearSensor;
-    private DistanceSensor rightSensor;
-
-
-    // color sensor
-    ColorSensor sensorColor;
-    DistanceSensor sensorDistance;
-
-    //IMU Sensor
-    BNO055IMU imu;
-
     // State used for updating IMU telemetry
     Orientation angles;
     Orientation autStep2Angles;
     Orientation autStep3Angles;
     Acceleration gravity;
-
-
     public boolean opStat;
     public String opStatusString;
     boolean whileStep2;
@@ -134,75 +121,15 @@ public class AutonomousWithStop extends LinearOpMode {
         }
         return false;
     }
-
-    private void initHook() {
-        // Lift initialization
-        lift = hardwareMap.get(DcMotor.class, robot.HOOK_DEVICE_NAME);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lift.setDirection(DcMotor.Direction.FORWARD);
-    }
-
-    private void initWheels() {
-
-        // Send telemetry message to signify robot waiting;
-        telemetry.addData("Status", "Resetting Encoders");    //
-        telemetry.update();
-
-        leftDriveFront.hardwareMap.get(DcMotor.class, robot.LEFT_FRONT_WHEEL_NAME);
-        rightDriveFront.hardwareMap.get(DcMotor.class, robot.RIGHT_REAR_WHEEL_NAME);
-        leftDriveBack.hardwareMap.get(DcMotor.class, robot.LEFT_FRONT_WHEEL_NAME);
-        rightDriveBack.hardwareMap.get(DcMotor.class, robot.RIGHT_REAR_WHEEL_NAME);
-
-        leftDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-
-        leftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-
-        // Send telemetry message to indicate successful Encoder reset
-        telemetry.addData("Path0", "Starting at %7d :%7d :%7d :%7d",
-                leftDriveFront.getCurrentPosition(),
-                rightDriveFront.getCurrentPosition(),
-                leftDriveBack.getCurrentPosition(),
-                rightDriveBack.getCurrentPosition());
-        telemetry.update();
-    }
-
-    private void initDistanceSensors() {
-        // distance sensors
-        frontSensor = hardwareMap.get(DistanceSensor.class, robot.FRONT_SENOR_NAME);
-        rearSensor = hardwareMap.get(DistanceSensor.class, robot.REAR_SENSOR_NAME);
-        rightSensor = hardwareMap.get(DistanceSensor.class, robot.RIGHT_SENSOR_NAME);
-    }
-
-    private void initColorSensor() {
-        sensorColor = hardwareMap.get(ColorSensor.class, "Color");
-        sensorDistance = hardwareMap.get(DistanceSensor.class, "Color");
-
-        float hsvValues[] = {0F, 0F, 0F};
-
-        // values is a reference to the hsvValues array.
-        final float values[] = hsvValues;
-
-        // sometimes it helps to multiply the raw RGB values with a scale factor
-        // to amplify/attentuate the measured values.
-        final double SCALE_FACTOR = 255;
-
+    public void initBot() {
+        robot.init(hardwareMap,LeftDriveFront, RightDriveFront, LeftDriveBack, RightDriveBack, lift, heightSensor, sensorColor, sensorDistance, imu );
         // get a reference to the RelativeLayout so we can change the background
         // color of the Robot Controller app to match the hue detected by the RGB sensor.
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-    }
 
-    private void initIMU() {
+
+
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
         // provide positional information.
@@ -213,10 +140,6 @@ public class AutonomousWithStop extends LinearOpMode {
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
-        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
-        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
-        // and named "imu".
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
@@ -224,6 +147,10 @@ public class AutonomousWithStop extends LinearOpMode {
         composeTelemetry();
 
     }
+
+
+
+
 
     //------------------------------------------------------------------------------------
     // Motor controls
@@ -244,29 +171,29 @@ public class AutonomousWithStop extends LinearOpMode {
 
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
-
+            initBot();
             // Determine new target position, and pass to motor controller
-            newLeftFrontTarget = leftDriveFront.getCurrentPosition() + (int) (LeftFrontInches * COUNTS_PER_INCH);
-            newRightFrontTarget = rightDriveFront.getCurrentPosition() + (int) (RightFrontInches * COUNTS_PER_INCH);
-            newLeftBackTarget = leftDriveBack.getCurrentPosition() + (int) (LeftBackInches * COUNTS_PER_INCH);
-            newRightBackTarget = rightDriveBack.getCurrentPosition() + (int) (RightBackInches * COUNTS_PER_INCH);
-            leftDriveFront.setTargetPosition(newLeftFrontTarget);
-            rightDriveFront.setTargetPosition(newRightFrontTarget);
-            leftDriveBack.setTargetPosition(newLeftBackTarget);
-            rightDriveBack.setTargetPosition(newRightBackTarget);
+            newLeftFrontTarget = LeftDriveFront.getCurrentPosition() + (int) (LeftFrontInches * COUNTS_PER_INCH);
+            newRightFrontTarget = RightDriveFront.getCurrentPosition() + (int) (RightFrontInches * COUNTS_PER_INCH);
+            newLeftBackTarget = LeftDriveBack.getCurrentPosition() + (int) (LeftBackInches * COUNTS_PER_INCH);
+            newRightBackTarget = RightDriveBack.getCurrentPosition() + (int) (RightBackInches * COUNTS_PER_INCH);
+            LeftDriveFront.setTargetPosition(newLeftFrontTarget);
+            RightDriveFront.setTargetPosition(newRightFrontTarget);
+            LeftDriveBack.setTargetPosition(newLeftBackTarget);
+            RightDriveBack.setTargetPosition(newRightBackTarget);
 
             // Turn On RUN_TO_POSITION
-            leftDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            leftDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            LeftDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            RightDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            LeftDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            RightDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // reset the timeout time and start motion.
             runtime.reset();
-            leftDriveFront.setPower(Math.abs(speed));
-            rightDriveFront.setPower(Math.abs(speed));
-            leftDriveBack.setPower(Math.abs(speed));
-            rightDriveBack.setPower(Math.abs(speed));
+            LeftDriveFront.setPower(Math.abs(speed));
+            RightDriveFront.setPower(Math.abs(speed));
+            LeftDriveBack.setPower(Math.abs(speed));
+            RightDriveBack.setPower(Math.abs(speed));
 
             // keep looping while we are still active, and there is time left, and both motors are running.
             // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
@@ -276,15 +203,15 @@ public class AutonomousWithStop extends LinearOpMode {
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
-                    (leftDriveFront.isBusy() && rightDriveFront.isBusy() && leftDriveBack.isBusy() && rightDriveBack.isBusy())) {
+                    (LeftDriveFront.isBusy() && RightDriveFront.isBusy() && LeftDriveBack.isBusy() && RightDriveBack.isBusy())) {
 
                 // Display it for the driver.
                 telemetry.addData("Path1", "Running to %7d :%7d :7d :7d", newLeftFrontTarget, newRightFrontTarget, newLeftBackTarget, newRightBackTarget);
                 telemetry.addData("Path2", "Running at %7d :%7d :7d :7d",
-                        leftDriveFront.getCurrentPosition(),
-                        rightDriveFront.getCurrentPosition(),
-                        leftDriveBack.getCurrentPosition(),
-                        rightDriveBack.getCurrentPosition());
+                        LeftDriveFront.getCurrentPosition(),
+                        RightDriveFront.getCurrentPosition(),
+                        LeftDriveBack.getCurrentPosition(),
+                        RightDriveBack.getCurrentPosition());
                 telemetry.update();
 
             }
@@ -301,16 +228,16 @@ public class AutonomousWithStop extends LinearOpMode {
     }
 
     public void stopWheels() {
-        leftDriveFront.setPower(0);
-        rightDriveFront.setPower(0);
-        leftDriveBack.setPower(0);
-        rightDriveBack.setPower(0);
+        LeftDriveFront.setPower(0);
+        RightDriveFront.setPower(0);
+        LeftDriveBack.setPower(0);
+        RightDriveBack.setPower(0);
 
         // Turn off RUN_TO_POSITION
-        leftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void driveForward(double distance) {
@@ -329,10 +256,10 @@ public class AutonomousWithStop extends LinearOpMode {
             return;
         }
 
-        leftDriveFront.setPower(speedRatio);
-        rightDriveFront.setPower(-speedRatio);
-        leftDriveBack.setPower(-speedRatio);
-        rightDriveBack.setPower(speedRatio);
+        LeftDriveFront.setPower(speedRatio);
+        RightDriveFront.setPower(-speedRatio);
+        LeftDriveBack.setPower(-speedRatio);
+        RightDriveBack.setPower(speedRatio);
     }
 
     /**
@@ -366,10 +293,10 @@ public class AutonomousWithStop extends LinearOpMode {
             return;
         }
 
-        leftDriveFront.setPower(-slideRatio);
-        rightDriveFront.setPower(slideRatio);
-        leftDriveBack.setPower(slideRatio);
-        rightDriveBack.setPower(-slideRatio);
+        LeftDriveFront.setPower(-slideRatio);
+        RightDriveFront.setPower(slideRatio);
+        LeftDriveBack.setPower(slideRatio);
+        RightDriveBack.setPower(-slideRatio);
     }
 
 
@@ -588,30 +515,13 @@ public class AutonomousWithStop extends LinearOpMode {
     }
 
 
-    private void initRobot() {
-        // init hook
-        initHook();
 
-
-        // init wheels
-        initWheels();
-
-        // init proximity sensors
-        initDistanceSensors();
-
-        // init color sensor
-        initColorSensor();
-
-        // init imu
-        initIMU();
-
-    }
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        initRobot();
+        initBot();
 
         waitForStart();
         runtime.reset();
@@ -626,17 +536,17 @@ public class AutonomousWithStop extends LinearOpMode {
 
         // the following is the state of the autonomous mode
         // 1. Descent
-       lowerHook(new UntilCondition() {
-                     @Override
-                     public boolean until() {
-                         double x = heightSensor.getDistance(DistanceUnit.INCH) - robot.ZERO_HEIGHT;
-                         if (((Math.abs(x)) < MOE_HEIGHT) == true) {
-                             lift.setPower(1.0);
-                         } else {
-                             lift.setPower(0);
-                         }
-                         return (x * x) < MOE_HEIGHT; }});
-        telemetry.addData("Current Step", 1);\\
+        lowerHook(new UntilCondition() {
+            @Override
+            public boolean until() {
+                double x = heightSensor.getDistance(DistanceUnit.INCH) - robot.ZERO_HEIGHT;
+                if (((Math.abs(x)) < MOE_HEIGHT) == true) {
+                    lift.setPower(1.0);
+                } else {
+                    lift.setPower(0);
+                }
+                return (x * x) < MOE_HEIGHT; }});
+        telemetry.addData("Current Step", 1);
 
 
         // 2. Slide right
@@ -659,41 +569,16 @@ public class AutonomousWithStop extends LinearOpMode {
         turnLeft(90);
 
         // 7. Go forward to the wall
-        if (frontSensor < 30){
+       /* if (frontSensor < 30){
             driveForward(30);
         }else{
             //drop team marker
             stopWheels();
-        }
+        }*/
+
 
         // 8. Move forward until the bot senses black color (crater)
 
-/*
- * Initial sample code
-        while (opModeIsActive()) {
-            leftDriveFront.setPower(1);
-            //sleep(5000);
-            opStat=true;
-            int timeremain = (int)Math.floor(30 - runtime.time());
-            opModeStringChecker();
-            telemetry.addData("Status", "Run Time: " + timeremain);
-            telemetry.addData("The TooT","Status: " + opStatusString);
-            telemetry.update();
-            opModeStringChecker();
-            ifStopped();
-        }
 
-
-        ifStopped();
-        opModeStringChecker();
-        telemetry.addData("The TooT","Status:" + opStatusString);
-        telemetry.update();
-
-    }
-
-
-
-    }
-    */
     }
 }

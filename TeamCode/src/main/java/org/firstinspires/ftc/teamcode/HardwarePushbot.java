@@ -30,11 +30,24 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 
+
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 /**
  * This is NOT an opmode.
@@ -55,11 +68,22 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class HardwarePushbot
 {
     /* Public OpMode members. */
-    public DcMotor  LeftDriveFront;
-    public DcMotor  RightDriveFront;
-    public DcMotor  LeftDriveBack ;
-    public DcMotor  RightDriveBack;
-    public DcMotor  armLift;
+    public DcMotor  LeftDriveFront = null;
+    public DcMotor  RightDriveFront = null;
+    public DcMotor  LeftDriveBack = null;
+    public DcMotor  RightDriveBack = null;
+
+    public DcMotor  lift = null;
+
+    public DistanceSensor heightSensor = null;
+    public DistanceSensor frontSensor = null;
+    public DistanceSensor rearSensor = null;
+    public DistanceSensor rightSensor = null;
+
+    public ColorSensor sensorColor = null;
+    public DistanceSensor sensorDistance = null;
+
+    BNO055IMU imu;
 
     public static double ZERO_HEIGHT = 5.11;
     public static double HOOK_OFFSET = 0.25;
@@ -67,17 +91,6 @@ public class HardwarePushbot
     public static int MOVE_TIME = 3;
     public static int BACKUP_TIME = 5;
 
-    public static String HOOK_DEVICE_NAME = "lift";
-    public static String HEIGHT_SENSOR_NAME = "Height";
-
-    public static String LEFT_FRONT_WHEEL_NAME = "LeftDriveFront";
-    public static String RIGHT_FRONT_WHEEL_NAME = "RightDriveFront";
-    public static String LEFT_REAR_WHEEL_NAME = "LeftDriveBack";
-    public static String RIGHT_REAR_WHEEL_NAME = "RightDriveBack";
-
-    public static String FRONT_SENOR_NAME = "FrontD";
-    public static String REAR_SENSOR_NAME = "RearD";
-    public static String RIGHT_SENSOR_NAME = "RightD";
 
 
 
@@ -91,40 +104,49 @@ public class HardwarePushbot
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap) {
+    public void init(HardwareMap ahwMap, DcMotor LeftDriveFront, DcMotor  RightDriveFront, DcMotor  LeftDriveBack, DcMotor  RightDriveBack, DcMotor lift, DistanceSensor heightSensor, ColorSensor sensorColor, DistanceSensor sensorDistance, BNO055IMU imu) {
         // Save reference to Hardware map
         hwMap = ahwMap;
 
-        // Define and Initialize Motors
+        //Init Wheels
         LeftDriveFront  = hwMap.get(DcMotor.class, "LeftDriveFront");
         RightDriveFront = hwMap.get(DcMotor.class, "RightDriveFront");
         LeftDriveBack    = hwMap.get(DcMotor.class, "LeftDriveBack");
         RightDriveBack  = hwMap.get(DcMotor.class, "RightDriveBack");
-        armLift = hwMap.get(DcMotor.class, "armLift");
-        LeftDriveFront.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
+        LeftDriveFront.setDirection(DcMotor.Direction.FORWARD);
         RightDriveFront.setDirection(DcMotor.Direction.REVERSE);
-        LeftDriveBack.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        RightDriveBack.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        //armLift.setDirection(DcMotor.Direction.REVERSE);
-
-        // Set all motors to zero power
+        LeftDriveBack.setDirection(DcMotor.Direction.FORWARD);
+        RightDriveBack.setDirection(DcMotor.Direction.REVERSE);
         LeftDriveFront.setPower(0);
         RightDriveFront.setPower(0);
         LeftDriveBack.setPower(0);
         RightDriveBack.setPower(0);
-        //armLift.setPower(0);
-
-        // Set all motors to run without encoders.
-        // May want to use RUN_USING_ENCODERS if encoders are installed.
         LeftDriveFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         RightDriveFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         LeftDriveBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         RightDriveBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        // armLift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //Init Lift
+        lift = hwMap.get(DcMotor.class, "lift");
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift.setDirection(DcMotor.Direction.FORWARD);
+        //Init DistanceSensors
+        heightSensor=hwMap.get(DistanceSensor.class, "Height");
+        //Init ColorSensor
+        sensorColor = hwMap.get(ColorSensor.class, "Color");
+        sensorDistance = hwMap.get(DistanceSensor.class, "Color");
+        float hsvValues[] = {0F, 0F, 0F};
+        final float values[] = hsvValues;
+
+        // sometimes it helps to multiply the raw RGB values with a scale factor
+        // to amplify/attentuate the measured values.
+        final double SCALE_FACTOR = 255;
 
 
 
-        // Define and initialize ALL installed servos.
+
+
 
     }
 }
