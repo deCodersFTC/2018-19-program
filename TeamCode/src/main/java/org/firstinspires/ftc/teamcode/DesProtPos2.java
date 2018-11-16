@@ -29,23 +29,15 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.app.Activity;
-import android.graphics.Color;
-import android.view.View;
-
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.Locale;
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -61,8 +53,7 @@ import java.util.Locale;
  */
 
 @Autonomous(name="Basic: Iterative OpMode", group="Iterative Opmode")
-@Disabled
-public class DesProt extends OpMode {
+public class DesProtPos2 extends OpMode {
     public DcMotor  LeftDriveFront = null;
     public DcMotor  RightDriveFront = null;
     public DcMotor  LeftDriveBack = null;
@@ -72,8 +63,8 @@ public class DesProt extends OpMode {
 
     public DistanceSensor heightSensor = null;
     public DistanceSensor frontSensor = null;
-    public DistanceSensor rearSensor = null;
-    public DistanceSensor rightSensor = null;
+    //public DistanceSensor rearSensor = null;
+    //public DistanceSensor rightSensor = null;
 
     public ColorSensor sensorColor = null;
     public DistanceSensor sensorDistance = null;
@@ -125,8 +116,8 @@ public class DesProt extends OpMode {
         //Init DistanceSensors
         heightSensor=hardwareMap.get(DistanceSensor.class, "Height");
         //frontSensor = hardwareMap.get(DistanceSensor.class, "FrontD");
-        rearSensor = hardwareMap.get(DistanceSensor.class, "RearD");
-        rightSensor = hardwareMap.get(DistanceSensor.class, "RightD");
+        //rearSensor = hardwareMap.get(DistanceSensor.class, "RearD");
+        //rightSensor = hardwareMap.get(DistanceSensor.class, "RightD");
         //Init ColorSensor
         sensorColor = hardwareMap.get(ColorSensor.class, "Color");
         sensorDistance = hardwareMap.get(DistanceSensor.class, "Color");
@@ -252,6 +243,7 @@ public class DesProt extends OpMode {
 //        slideRight(36);
 
         //Actual Autonomous
+        //Descent
         //Slide hook out
         Backwards(1);
         //Turn away from lander
@@ -302,31 +294,37 @@ public class DesProt extends OpMode {
 
         }
         if(whileScanning == 1 && ifGold==true){
-            slideLeft(0);
+            Forwards(16.8);
+            TurnRight(45);
+            Forwards(24);
+            //Drop Marker
+            TurnRight(90);
+            Forwards(108);
             telemetry.addData("Gold Position", "1");
             telemetry.update();
         }
-        if(whileScanning == 2 && ifGold== true){
-            slideLeft(16.4);
+        if(whileScanning == 2 && ifGold == true){
+            Forwards(33.6);
+            //Drop Marker
+            TurnRight(135);
+            Forwards(108);
             telemetry.addData("Gold Position", "2");
             telemetry.update();
         }
         if(whileScanning == 3 && ifGold==true){
-            slideLeft(33.6);
+            Forwards(16.8);
+            TurnLeft(45);
+            Forwards(24);
+            //DropMarker
+            Backwards(108);
             telemetry.addData("Gold Position", "3");
             telemetry.update();
         }
 
-        TurnLeft(35);
-        Forwards(10);
-        TurnLeft(35);
-        Forwards(70);
-        //Drop team Marker into Depot
 
-        Backwards(108);
         //Reached Crater
         telemetry.addData("Reached","Crater");
-        telemetry.update();        
+        telemetry.update();
 
 
 
@@ -342,7 +340,7 @@ public class DesProt extends OpMode {
     /*
      * Code to run ONCE after the driver hits STOP
      */
-     
+    @Override
     public void stop(){
         stopAllMotors();
         loopActive = false;
