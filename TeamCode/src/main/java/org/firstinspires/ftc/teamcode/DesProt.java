@@ -29,14 +29,23 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.app.Activity;
+import android.graphics.Color;
+import android.view.View;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import java.util.Locale;
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -133,20 +142,20 @@ public class DesProt extends OpMode {
     }
 
 
-    public void encoderDrive(double speed, double leftFrontInches, double rightFrontInches, double leftBackInches, double rightBackInches double timeoutS) {
+    public void encoderDrive(double speed, double leftFrontInches, double rightFrontInches, double leftBackInches, double rightBackInches, double timeoutS) {
         int newLeftFrontTarget;
         int newRightFrontTarget;
         int newLeftBackTarget;
-        int newRightBackTarget
+        int newRightBackTarget;
 
         // Ensure that the opmode is still active
-        if (opModeIsActive()) {
+        if (loopActive) {
 
             // Determine new target position, and pass to motor controller
             newLeftFrontTarget = LeftDriveFront.getCurrentPosition() + (int)(leftFrontInches * COUNTS_PER_INCH);
             newRightFrontTarget = RightDriveFront.getCurrentPosition() + (int)(rightFrontInches * COUNTS_PER_INCH);
-            newLeftFrontTarget = LeftDriveBack.getCurrentPosition() + (int)(leftBackInches * COUNTS_PER_INCH);
-            newRightFrontTarget = RightDriveBack.getCurrentPosition() + (int)(rightBackInches * COUNTS_PER_INCH);
+            newLeftBackTarget = LeftDriveBack.getCurrentPosition() + (int)(leftBackInches * COUNTS_PER_INCH);
+            newRightBackTarget = RightDriveBack.getCurrentPosition() + (int)(rightBackInches * COUNTS_PER_INCH);
 
 
             LeftDriveFront.setTargetPosition(newLeftFrontTarget);
@@ -173,7 +182,7 @@ public class DesProt extends OpMode {
             // always end the motion as soon as possible.
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() && (runtime.seconds() < timeoutS) && ( LeftDriveBack.isBusy() &&  RightDriveBack.isBusy())) {
+            while (loopActive && (runtime.seconds() < timeoutS) && ( LeftDriveBack.isBusy() &&  RightDriveBack.isBusy())) {
 
                 // Display it for the driver.
                 telemetry.addData("Path1",  "Running to %7d :%7d :%7d: %7d", newLeftBackTarget,  newLeftFrontTarget, newRightBackTarget, newRightFrontTarget);
@@ -193,22 +202,22 @@ public class DesProt extends OpMode {
     }
 
     public void Forwards(double distance){
-        encoderDrive(DRIVE_SPEED,distance,distance,distance,distance);
+        encoderDrive(DRIVE_SPEED,distance,distance,distance,distance, 5);
     }
     public void Backwards(double distance){
-        encoderDrive(DRIVE_SPEED, -distance, -distance, -distance, -distance);
+        encoderDrive(DRIVE_SPEED, -distance, -distance, -distance, -distance, 5);
     }
     public void TurnRight(double degrees){
-        encoderDrive(TURN_SPEED, degrees, -degrees, degrees,- degrees);
+        encoderDrive(TURN_SPEED, degrees, -degrees, degrees,- degrees,5);
     }
     public void TurnLeft(double degrees){
-        encoderDrive(TURN_SPEED, -degrees, degrees, -degrees, degrees);
+        encoderDrive(TURN_SPEED, -degrees, degrees, -degrees, degrees, 5);
     }
     public void slideRight(double distance){
-        encoderDrive(SLIDE_SPEED,distance,-distance,-distance,distance);
+        encoderDrive(SLIDE_SPEED,distance,-distance,-distance,distance,5);
     }
     public void slideLeft(double distance){
-        encoderDrive(SLIDE_SPEED,-distance,distance,distance,-distance);
+        encoderDrive(SLIDE_SPEED,-distance,distance,distance,-distance,5);
     }
 
     @Override
@@ -227,8 +236,11 @@ public class DesProt extends OpMode {
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
+
+    public boolean loopActive;
     @Override
     public void loop() {
+        loopActive = true;
         //Testing Encoders----> To Test on Next Date at Playing Field
         Forwards(36);
         Backwards(36);
@@ -258,7 +270,7 @@ public class DesProt extends OpMode {
             telemetry.addData("Green", sensorColor.green());
             telemetry.addData("Blue ", sensorColor.blue());
 
-            if (205<=sensorColor.red()<=305 && 205<=sensorColor.green()<=305 && -50<=sensorColor.blue()<=50){
+            if (205 <= sensorColor.red() <= 305 && 205 <= sensorColor.green() <= 305 && -50 <= sensorColor.blue() <= 50){
                 Forwards(10);
                 Backwards(10);
                 ifGold=true;
@@ -313,6 +325,7 @@ public class DesProt extends OpMode {
     @Override
     public void stop(){
         stopAllMotors();
+        loopActive = false;
     }
 
 }
