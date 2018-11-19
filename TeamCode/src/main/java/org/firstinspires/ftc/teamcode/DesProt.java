@@ -60,7 +60,7 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Basic: Iterative OpMode", group="Iterative Opmode")
+@Autonomous(name="DesProt", group="Iterative Opmode")
 @Disabled
 public class DesProt extends OpMode {
     public DcMotor  LeftDriveFront = null;
@@ -72,8 +72,8 @@ public class DesProt extends OpMode {
 
     public DistanceSensor heightSensor = null;
     public DistanceSensor frontSensor = null;
-    public DistanceSensor rearSensor = null;
-    public DistanceSensor rightSensor = null;
+//    public DistanceSensor rearSensor = null;
+//    public DistanceSensor rightSensor = null;
 
     public ColorSensor sensorColor = null;
     public DistanceSensor sensorDistance = null;
@@ -85,7 +85,7 @@ public class DesProt extends OpMode {
 
     //Encoder Variable
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
+    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
     static final double     DRIVE_SPEED             = 1;
@@ -101,10 +101,10 @@ public class DesProt extends OpMode {
         RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
         LeftDriveBack    = hardwareMap.get(DcMotor.class, "LeftDriveBack");
         RightDriveBack  = hardwareMap.get(DcMotor.class, "RightDriveBack");
-        LeftDriveFront.setDirection(DcMotor.Direction.FORWARD);
-        RightDriveFront.setDirection(DcMotor.Direction.REVERSE);
-        LeftDriveBack.setDirection(DcMotor.Direction.FORWARD);
-        RightDriveBack.setDirection(DcMotor.Direction.REVERSE);
+        LeftDriveFront.setDirection(DcMotor.Direction.REVERSE);
+        RightDriveFront.setDirection(DcMotor.Direction.FORWARDS);
+        LeftDriveBack.setDirection(DcMotor.Direction.REVERSE);
+        RightDriveBack.setDirection(DcMotor.Direction.FORWARDS);
 
         LeftDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RightDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -125,8 +125,8 @@ public class DesProt extends OpMode {
         //Init DistanceSensors
         heightSensor=hardwareMap.get(DistanceSensor.class, "Height");
         //frontSensor = hardwareMap.get(DistanceSensor.class, "FrontD");
-        rearSensor = hardwareMap.get(DistanceSensor.class, "RearD");
-        rightSensor = hardwareMap.get(DistanceSensor.class, "RightD");
+//        rearSensor = hardwareMap.get(DistanceSensor.class, "RearD");
+//        rightSensor = hardwareMap.get(DistanceSensor.class, "RightD");
         //Init ColorSensor
         sensorColor = hardwareMap.get(ColorSensor.class, "Color");
         sensorDistance = hardwareMap.get(DistanceSensor.class, "Color");
@@ -253,13 +253,13 @@ public class DesProt extends OpMode {
 
         //Actual Autonomous
         //Slide hook out
-        Backwards(1);
+        Forwards(1);
         //Turn away from lander
         TurnLeft(90);
         //Move away from lander
         Forwards(18);
         //Move so robot is facing right mineral
-        slideRight(18);
+        slideLeft(18);
         //Move closer to mineral
         Forwards(9);
 
@@ -279,13 +279,13 @@ public class DesProt extends OpMode {
             telemetry.addData("BlueOn", blueOn);
             telemetry.update();
 
-            if((sensorColor.red()^2) <525 && ((sensorColor).red()^2) > 725){
+            if((sensorColor.red()^2) =>525 && ((sensorColor).red()^2) <= 725){
                 redOn = true;
             }
-            if((sensorColor.green()^2)<224 && (sensorColor.green()^2)>424){
+            if((sensorColor.green()^2)=>224 && (sensorColor.green()^2)<=424){
                 greenOn = true;
             }
-            if((sensorColor.blue()^2)<476 && (sensorColor.blue()^2)>676){
+            if((sensorColor.blue()^2)=>476 && (sensorColor.blue()^2<=676){
                 blueOn = true;
             }
 
@@ -294,6 +294,7 @@ public class DesProt extends OpMode {
                 Forwards(10);
                 Backwards(10);
                 ifGold=true;
+                whileScanning++;
             }
             else{
                 slideRight(2.8);
@@ -302,7 +303,6 @@ public class DesProt extends OpMode {
 
         }
         if(whileScanning == 1 && ifGold==true){
-            slideLeft(0);
             telemetry.addData("Gold Position", "1");
             telemetry.update();
         }
