@@ -76,9 +76,6 @@ public class HardwarePushbot
     public DcMotor  lift = null;
 
     public DistanceSensor heightSensor = null;
-    public DistanceSensor frontSensor = null;
-    public DistanceSensor rearSensor = null;
-    public DistanceSensor rightSensor = null;
 
     public ColorSensor sensorColor = null;
     public DistanceSensor sensorDistance = null;
@@ -132,7 +129,7 @@ public class HardwarePushbot
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift.setDirection(DcMotor.Direction.FORWARD);
         //Init DistanceSensors
-        heightSensor=hwMap.get(DistanceSensor.class, "Height");
+        heightSensor = hwMap.get(DistanceSensor.class, "Height");
         //Init ColorSensor
         sensorColor = hwMap.get(ColorSensor.class, "Color");
         sensorDistance = hwMap.get(DistanceSensor.class, "Color");

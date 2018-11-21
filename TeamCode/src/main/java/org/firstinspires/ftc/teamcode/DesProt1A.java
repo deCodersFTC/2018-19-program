@@ -53,19 +53,18 @@ import com.qualcomm.robotcore.util.Range;
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@Autonomous(name="Basic: Linear OpMode", group="Linear Opmode")
+@Autonomous(name="DesProt1A", group="Linear Opmode")
 
-public class DesProtLinear extends LinearOpMode {
+public class DesProt1A extends LinearOpMode {
 
     // Declare OpMode members.
-    public DcMotor  LeftDriveFront = null;
-    public DcMotor  RightDriveFront = null;
-    public DcMotor  LeftDriveBack = null;
-    public DcMotor  RightDriveBack = null;
+    public DcMotor  LeftDriveFront;
+    public DcMotor  RightDriveFront;
+    public DcMotor  LeftDriveBack;
+    public DcMotor  RightDriveBack;
 
-    public DcMotor  lift = null;
+    public DcMotor  lift;
 
-    public DistanceSensor heightSensor = null;
     public DistanceSensor frontSensor = null;
 //    public DistanceSensor rearSensor = null;
 //    public DistanceSensor rightSensor = null;
@@ -81,53 +80,13 @@ public class DesProtLinear extends LinearOpMode {
     static final double     DRIVE_GEAR_REDUCTION    = 1.0;     // This is < 1.0 if geared UP
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     DRIVE_SPEED             = 1;
-    static final double     TURN_SPEED              = 1;
-    static final double     SLIDE_SPEED             = 1;
+    static final double     DRIVE_SPEED             = 0.6;
+    static final double     TURN_SPEED              = 0.6;
+    static final double     SLIDE_SPEED             = 0.6;
 
 
 
-    public void initBot() {
-        //InitWheels
-        LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
-        RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
-        LeftDriveBack    = hardwareMap.get(DcMotor.class, "LeftDriveBack");
-        RightDriveBack  = hardwareMap.get(DcMotor.class, "RightDriveBack");
-        LeftDriveFront.setDirection(DcMotor.Direction.REVERSE);
-        RightDriveFront.setDirection(DcMotor.Direction.FORWARD);
-        LeftDriveBack.setDirection(DcMotor.Direction.REVERSE);
-        RightDriveBack.setDirection(DcMotor.Direction.FORWARD);
 
-        LeftDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RightDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        LeftDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RightDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-
-        LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //InitLift
-        lift = hardwareMap.get(DcMotor.class, "lift");
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lift.setDirection(DcMotor.Direction.FORWARD);
-        //Init DistanceSensors
-        heightSensor=hardwareMap.get(DistanceSensor.class, "Height");
-        //frontSensor = hardwareMap.get(DistanceSensor.class, "FrontD");
-//        rearSensor = hardwareMap.get(DistanceSensor.class, "RearD");
-//        rightSensor = hardwareMap.get(DistanceSensor.class, "RightD");
-        //Init ColorSensor
-        sensorColor = hardwareMap.get(ColorSensor.class, "Color");
-        sensorDistance = hardwareMap.get(DistanceSensor.class, "Color");
-        telemetry.addData("Status", "Initialized");
-        LeftDriveFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        RightDriveFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        LeftDriveBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        RightDriveBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    }
 
     public void stopAllMotors(){
         LeftDriveBack.setPower(0);
@@ -163,6 +122,7 @@ public class DesProtLinear extends LinearOpMode {
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
 
             lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
     }
 
 
@@ -208,10 +168,7 @@ public class DesProtLinear extends LinearOpMode {
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() && (runtime.seconds() < timeoutS) && ( LeftDriveBack.isBusy() &&  RightDriveBack.isBusy())) {
 
-                // Display it for the driver.
-                telemetry.addData("Path1",  "RunningubΩ to %7d :%7d :%7d: %7d", newLeftBackTarget,  newLeftFrontTarget, newRightBackTarget, newRightFrontTarget);
-                telemetry.addData("Path2",  "Running at %7d :%7d :%7d :%7d", LeftDriveFront.getCurrentPosition(), LeftDriveBack.getCurrentPosition(), RightDriveBack.getCurrentPosition(), RightDriveFront.getCurrentPosition());
-                telemetry.update();
+
             }
 
             // Stop all motion;
@@ -225,121 +182,90 @@ public class DesProtLinear extends LinearOpMode {
         }
     }
 
-    public void Forwards(double distance){
+    public void Backwards(double distance){
         encoderDrive(DRIVE_SPEED,distance,distance,distance,distance, 5);
     }
-    public void Backwards(double distance){
+    public void Forwards(double distance){
         encoderDrive(DRIVE_SPEED, -distance, -distance, -distance, -distance, 5);
-    }
-    public void TurnRight(double a){
-        double degrees = a * 24/90;
-        encoderDrive(TURN_SPEED, degrees, -degrees, degrees,- degrees,5);
     }
     public void TurnLeft(double a){
         double degrees = a * 24/90;
-        encoderDrive(TURN_SPEED, -degrees, degrees, -degrees, degrees, 5);
+        encoderDrive(TURN_SPEED, degrees, -degrees, degrees,- degrees,5);
     }
-    public void slideRight(double distance){
-        telemetry.addData("I am", "Sliding to the right");
-        telemetry.update();
-        encoderDrive(SLIDE_SPEED,distance,-distance,-distance,distance,5);
+    public void TurnRight(double a){
+        double degrees = a * 24/90;
+        encoderDrive(TURN_SPEED, -degrees, degrees, -degrees, degrees, 5);
     }
     public void slideLeft(double distance){
         encoderDrive(SLIDE_SPEED,-distance,distance,distance,-distance,5);
-        telemetry.addData("I am", "Sliding to the left");
-        telemetry.update();
+    }
+    public void slideRight(double distance){
+        encoderDrive(SLIDE_SPEED,distance,-distance,-distance,distance,5);
     }
 
     public void runOpMode() {
+
+        //InitWheels
+        LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
+        RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
+        LeftDriveBack    = hardwareMap.get(DcMotor.class, "LeftDriveBack");
+        RightDriveBack  = hardwareMap.get(DcMotor.class, "RightDriveBack");
+
+        LeftDriveFront.setDirection(DcMotor.Direction.FORWARD);
+        RightDriveFront.setDirection(DcMotor.Direction.REVERSE);
+        LeftDriveBack.setDirection(DcMotor.Direction.FORWARD);
+        RightDriveBack.setDirection(DcMotor.Direction.REVERSE);
+
+        LeftDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RightDriveFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LeftDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RightDriveBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+
+        LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //InitLift
+        lift = hardwareMap.get(DcMotor.class, "lift");
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift.setDirection(DcMotor.Direction.FORWARD);
+        //Init DistanceSensors
+
+
+        //Init ColorSensor
+        sensorColor = hardwareMap.get(ColorSensor.class, "Color");
+        sensorDistance = hardwareMap.get(DistanceSensor.class, "Color");
+        telemetry.addData("Status", "Initialized");
+        LeftDriveFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        RightDriveFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        LeftDriveBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        RightDriveBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         stopAllMotors();
         telemetry.addData("Status","Waiting for User ");
         telemetry.update();
-        initBot();
         waitForStart();
         runtime.reset();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            //Actual Autonomous
-
-            lift.setPower(1);
-
-            //Slide hook out
-            Forwards(1);
-            //Turn away from lander
-            TurnLeft(65);
-
-            //Move away from lander
-            Forwards(13);
-
-            //Move so robot is facing right mineral
-            slideRight(25);
-
-            int whileScanning = 0;
-            boolean ifGold;
-            boolean redOn = false;
-            boolean greenOn = false;
-            boolean blueOn = false;
-            ifGold = false;
-            while(ifGold == false){
-                telemetry.addData("Red  ", sensorColor.red());
-                telemetry.addData("Green", sensorColor.green());
-                telemetry.addData("Blue ", sensorColor.blue());
-                telemetry.addData("RedOn", redOn);
-                telemetry.addData("GreenOn", greenOn);
-                telemetry.addData("BlueOn", blueOn);
-                telemetry.update();
-
-                if((sensorColor.red()^2) >525 && ((sensorColor).red()^2) < 725){
-                    redOn = true;
-                }
-                if((sensorColor.green()^2)>224 && (sensorColor.green()^2)<424){
-                    greenOn = true;
-                }
-                if((sensorColor.blue()^2)>476 && (sensorColor.blue()^2)<676){
-                    blueOn = true;
-                }
-
-
-                if (blueOn && redOn && greenOn){
-                    Forwards(5);
-                    Backwards(5);
-                    ifGold=true;
-                    whileScanning++;
-                }
-                else{
-                    slideRight(2.8);
-                    whileScanning++;
-                }
-
-            }
-            if(whileScanning == 1 && ifGold==true){
-                telemetry.addData("Gold Position", "1");
-                telemetry.update();
-            }
-            if(whileScanning == 2 && ifGold== true){
-                slideLeft(16);
-                telemetry.addData("Gold Position", "2");
-                telemetry.update();
-            }
-            if(whileScanning == 3 && ifGold==true){
-                slideLeft(32);
-                telemetry.addData("Gold Position", "3");
-                telemetry.update();
-            }
-
+            Forwards(3);
+            TurnLeft(90);
+            Forwards(15);
+            slideLeft(20.5);
+            Forwards(8);
+            Backwards(6);
+            TurnLeft(90);
+            Forwards(20);
             TurnLeft(35);
-            Forwards(10);
-            TurnLeft(35);
-            Forwards(70);
-            //Drop team Marker into Depot
-
-            Backwards(108);
-            telemetry.addData("Reached","Crater");
-            telemetry.update();
-
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.update();
+            slideRight(9);
+            Forwards(55);
+            TurnLeft(1);
+            Backwards(300);
+            break;
         }
         stopAllMotors();
 
