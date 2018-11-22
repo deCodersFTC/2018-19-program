@@ -55,7 +55,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  */
 
 @TeleOp(name="Integrated TeleOp", group="Linear Opmode")
-//@Disabled
+
 public class DeCodersTeleOpIntegration extends LinearOpMode {
 
     // Declare OpMode members.
@@ -84,20 +84,7 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        telemetry.addData("B a=", gamepad1.a);
-        telemetry.addData("B y=", gamepad1.y);
-        telemetry.addData("Direction=", direction);
-        telemetry.addData("mencoder=", lift.getTargetPosition());
 
-        if (gamepad1.a == true) {
-            direction = DcMotor.Direction.REVERSE;
-            lift.setPower(-1);
-        } else if (gamepad1.y == true) {
-            direction = DcMotor.Direction.FORWARD;
-            lift.setPower(1);
-        } else {
-            lift.setPower(0);
-        }
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -142,12 +129,39 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
             double LeftBackPower;
             double RightBackPower;
 
-            if (gamepad2.a == true) {
-                intakeSpin.setPower(1.0);
-            }else if (gamepad2.y == true){
-                intakeSpin.setPower(-1.0);
-            }else {
-                intakeSpin.setPower(0.0);
+
+            telemetry.addData("B a=", gamepad1.a);
+            telemetry.addData("B y=", gamepad1.y);
+            telemetry.addData("Direction=", direction);
+            telemetry.addData("mencoder=", lift.getTargetPosition());
+
+            if (gamepad1.a == true) {
+                direction = DcMotor.Direction.REVERSE;
+                lift.setPower(-1);
+            } else if (gamepad1.y == true) {
+                direction = DcMotor.Direction.FORWARD;
+                lift.setPower(1);
+            } else {
+                lift.setPower(0);
+            }
+            if(gamepad2.left_trigger>0){
+                intakeLift.setPower(0.35);
+            }
+            else if(gamepad2.right_trigger>0){
+                intakeLift.setPower(-0.65);
+            }
+            else{
+                intakeLift.setPower(0);
+            }
+
+            if(gamepad2.a){
+                intakeSpin.setPower(1);
+            }
+            else if (gamepad2.y){
+                intakeSpin.setPower(-1);
+            }
+            else{
+                intakeSpin.setPower(0);
             }
 
             // if (gamepad1.a == true) {
@@ -158,17 +172,7 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
             //     positionIntakeMechanism(TARGET_POSITION_COLLECT);
             // }
 
-            if (gamepad2.left_trigger > 0 || gamepad2.right_trigger > 0) {
-                intakeLiftSpeed = gamepad2.right_trigger - gamepad2.left_trigger;
-                if (intakeLiftSpeed >= 0.35) {
-                    intakeLiftSpeed = 0.35;
-                }else if (intakeLiftSpeed <= -0.65) {
-                    intakeLiftSpeed = -0.65;
-                }
-                intakeLift.setPower(intakeLiftSpeed);
-            }else{
-                intakeLift.setPower(0.0);
-            }
+
 
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
@@ -198,25 +202,7 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
             LeftDriveBack.setPower(LeftBackPower);
             RightDriveBack.setPower(RightBackPower);
 
-            if(gamepad2.left_trigger>0){
-                intakeLift.setPower(0.35);
-            }
-            else if(gamepad2.right_trigger>0){
-                intakeLift.setPower(-0.65);
-            }
-            else{
-                intakeLift.setPower(0);
-            }
 
-            if(gamepad2.a){
-                intakeSpin.setPower(1);
-            }
-            else if (gamepad2.y){
-                intakeSpin.setPower(-1);
-            }
-            else{
-                intakeSpin.setPower(0);
-            }
             //Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Written by", "Intake SubTeam");
