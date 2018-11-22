@@ -158,10 +158,11 @@ public class MecanumAut extends LinearOpMode {
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
 
-
-        DriveForward(12);
-        DriveBackward(12);
-        SlideRight(12);
+        SlideRight(3);
+        DriveForward(36);
+        SlideRight(35);
+        DriveBackward(23);
+        SlideRight(3);
         SlideLeft(12);
         TurnRight(90);
         TurnLeft(180);

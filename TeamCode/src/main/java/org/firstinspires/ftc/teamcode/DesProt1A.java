@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -39,6 +40,14 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 
 /**
@@ -71,7 +80,8 @@ public class DesProt1A extends LinearOpMode {
 
     public ColorSensor sensorColor = null;
     public DistanceSensor sensorDistance = null;
-
+    Orientation angles;
+    float origAngle;
     BNO055IMU imu;
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -87,7 +97,17 @@ public class DesProt1A extends LinearOpMode {
 
 
 
+    public void orientationChecker(double x){
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        float newAngle = angles.firstAngle;
+        double difference = newAngle-x;
+        if(newAngle != origAngle+ x){
+            TurnRight(-difference);
+        }
 
+        telemetry.addData("Original Angle", origAngle);
+        telemetry.update();
+    }
     public void stopAllMotors(){
         LeftDriveBack.setPower(0);
         RightDriveBack.setPower(0);
@@ -206,6 +226,17 @@ public class DesProt1A extends LinearOpMode {
     public void runOpMode() {
 
         //InitWheels
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        imu.initialize(parameters);
+
         LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
         RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
         LeftDriveBack    = hardwareMap.get(DcMotor.class, "LeftDriveBack");
@@ -252,18 +283,23 @@ public class DesProt1A extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+              float origAngle=angles.firstAngle;
             Forwards(3);
             TurnLeft(90);
+            orientationChecker(-90);
             Forwards(15);
             slideLeft(20.5);
             Forwards(8);
             Backwards(6);
             TurnLeft(90);
+            orientationChecker(-90);
             Forwards(20);
             TurnLeft(35);
+            orientationChecker(-35);
             slideRight(9);
             Forwards(55);
             TurnLeft(1);
+            orientationChecker(-1);
             Backwards(300);
             break;
         }
