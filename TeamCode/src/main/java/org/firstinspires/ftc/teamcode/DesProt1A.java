@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -39,6 +40,14 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 
 /**
@@ -71,8 +80,11 @@ public class DesProt1A extends LinearOpMode {
 
     public ColorSensor sensorColor = null;
     public DistanceSensor sensorDistance = null;
-
+    Orientation angles;
+    float origAngle;
+    float newAngle;
     BNO055IMU imu;
+
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -86,8 +98,21 @@ public class DesProt1A extends LinearOpMode {
 
 
 
+    int checknum = 0;
+    public void orientationChecker(double x){
+        while(checknum<=2){
+            double newAngle = angles.firstAngle;
+            double difference = newAngle-x;
+            if(newAngle != x){
+                TurnRight(-difference);
+                checknum++;
+            }
+        }
 
-
+        telemetry.addData("Original Angle", origAngle);
+        telemetry.addData("New Angle",newAngle);
+        telemetry.update();
+    }
     public void stopAllMotors(){
         LeftDriveBack.setPower(0);
         RightDriveBack.setPower(0);
@@ -206,6 +231,18 @@ public class DesProt1A extends LinearOpMode {
     public void runOpMode() {
 
         //InitWheels
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        imu.initialize(parameters);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
         LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
         RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
         LeftDriveBack    = hardwareMap.get(DcMotor.class, "LeftDriveBack");
@@ -252,19 +289,30 @@ public class DesProt1A extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            Forwards(3);
+            float origAngle=angles.firstAngle;
+            telemetry.addData("Original Heading", origAngle);
+            telemetry.update();
+            // Forwards(3);
             TurnLeft(90);
-            Forwards(15);
-            slideLeft(20.5);
-            Forwards(8);
-            Backwards(6);
+            orientationChecker(-90);
+            sleep(1000);
+            // Forwards(15);
+            // slideLeft(20.5);
+            // Forwards(8);
+            // Backwards(6);
             TurnLeft(90);
-            Forwards(20);
+            orientationChecker(-90);
+            sleep(1000);
+            // Forwards(20);
             TurnLeft(35);
-            slideRight(9);
-            Forwards(55);
+            orientationChecker(-35);
+            sleep(1000);
+            // slideRight(9);
+            // Forwards(55);
             TurnLeft(1);
-            Backwards(300);
+            orientationChecker(-1);
+            sleep(1000);
+            // Backwards(300);
             break;
         }
         stopAllMotors();
