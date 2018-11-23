@@ -82,7 +82,9 @@ public class DesProt1A extends LinearOpMode {
     public DistanceSensor sensorDistance = null;
     Orientation angles;
     float origAngle;
+    float newAngle;
     BNO055IMU imu;
+
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -96,16 +98,19 @@ public class DesProt1A extends LinearOpMode {
 
 
 
-
+    int checknum = 0;
     public void orientationChecker(double x){
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        float newAngle = angles.firstAngle;
-        double difference = newAngle-x;
-        if(newAngle != origAngle+ x){
-            TurnRight(-difference);
+        while(checknum<=2){
+            double newAngle = angles.firstAngle;
+            double difference = newAngle-x;
+            if(newAngle != x){
+                TurnRight(-difference);
+                checknum++;
+            }
         }
 
         telemetry.addData("Original Angle", origAngle);
+        telemetry.addData("New Angle",newAngle);
         telemetry.update();
     }
     public void stopAllMotors(){
@@ -236,6 +241,7 @@ public class DesProt1A extends LinearOpMode {
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
         RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
@@ -283,24 +289,38 @@ public class DesProt1A extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-              float origAngle=angles.firstAngle;
-            Forwards(3);
+            float origAngle=angles.firstAngle;
+            telemetry.addData("Original Heading", origAngle);
+            telemetry.update();
+            // Forwards(3);
             TurnLeft(90);
             orientationChecker(-90);
-            Forwards(15);
-            slideLeft(20.5);
-            Forwards(8);
-            Backwards(6);
+            telemetry.addData("Turn","Corrected");
+            telemetry.update();
+            sleep(1000);
+            // Forwards(15);
+            // slideLeft(20.5);
+            // Forwards(8);
+            // Backwards(6);
             TurnLeft(90);
             orientationChecker(-90);
-            Forwards(20);
+            telemetry.addData("Turn","Corrected");
+            telemetry.update();
+            sleep(1000);
+            // Forwards(20);
             TurnLeft(35);
             orientationChecker(-35);
-            slideRight(9);
-            Forwards(55);
+            telemetry.addData("Turn","Corrected");
+            telemetry.update();
+            sleep(1000);
+            // slideRight(9);
+            // Forwards(55);
             TurnLeft(1);
             orientationChecker(-1);
-            Backwards(300);
+            telemetry.addData("Turn","Corrected");
+            telemetry.update();
+            sleep(1000);
+            // Backwards(300);
             break;
         }
         stopAllMotors();
