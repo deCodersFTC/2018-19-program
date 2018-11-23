@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import java.util.Locale;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -55,7 +56,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
  * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
  * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
  * class is instantiated on the Robot Controller and executed.
- *
  * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
  * It includes all the skeletal structure that all linear OpModes contain.
  *
@@ -66,6 +66,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class DesProt1A extends LinearOpMode {
 
+
     // Declare OpMode members.
     public DcMotor  LeftDriveFront;
     public DcMotor  RightDriveFront;
@@ -75,15 +76,11 @@ public class DesProt1A extends LinearOpMode {
     public DcMotor  lift;
 
     public DistanceSensor frontSensor = null;
-//    public DistanceSensor rearSensor = null;
-//    public DistanceSensor rightSensor = null;
 
-    public ColorSensor sensorColor = null;
-    public DistanceSensor sensorDistance = null;
     Orientation angles;
-    float origAngle;
-    float newAngle;
+
     BNO055IMU imu;
+    double origAngle;
 
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -98,21 +95,19 @@ public class DesProt1A extends LinearOpMode {
 
 
 
-    int checknum = 0;
-    public void orientationChecker(double x){
-        while(checknum<=2){
-            double newAngle = angles.firstAngle;
-            double difference = newAngle-x;
-            if(newAngle != x){
-                TurnRight(-difference);
-                checknum++;
-            }
-        }
 
-        telemetry.addData("Original Angle", origAngle);
-        telemetry.addData("New Angle",newAngle);
-        telemetry.update();
+    public void orientationChecker(double angleTarget){
+        double newAngle;
+        double difference;
+        int checknum = 0;
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while(checknum<=2 && newAngle-origAngle!=angleTarget){
+
+        }
     }
+
+
+
     public void stopAllMotors(){
         LeftDriveBack.setPower(0);
         RightDriveBack.setPower(0);
@@ -228,6 +223,14 @@ public class DesProt1A extends LinearOpMode {
         encoderDrive(SLIDE_SPEED,distance,-distance,-distance,distance,5);
     }
 
+    String formatAngle(AngleUnit angleUnit, double angle) {
+        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
+    }
+
+    String formatDegrees(double degrees){
+        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
+    }
+
     public void runOpMode() {
 
         //InitWheels
@@ -241,7 +244,6 @@ public class DesProt1A extends LinearOpMode {
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
         RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
@@ -272,10 +274,6 @@ public class DesProt1A extends LinearOpMode {
         //Init DistanceSensors
 
 
-        //Init ColorSensor
-        sensorColor = hardwareMap.get(ColorSensor.class, "Color");
-        sensorDistance = hardwareMap.get(DistanceSensor.class, "Color");
-        telemetry.addData("Status", "Initialized");
         LeftDriveFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RightDriveFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         LeftDriveBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -286,41 +284,29 @@ public class DesProt1A extends LinearOpMode {
         telemetry.update();
         waitForStart();
         runtime.reset();
-
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        origAngle = angles.firstAngle;
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            float origAngle=angles.firstAngle;
-            telemetry.addData("Original Heading", origAngle);
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            telemetry.addData("Original Angle", origAngle);
             telemetry.update();
-            // Forwards(3);
+
+            Forwards(3);
             TurnLeft(90);
-            orientationChecker(-90);
-            telemetry.addData("Turn","Corrected");
-            telemetry.update();
-            sleep(1000);
-            // Forwards(15);
-            // slideLeft(20.5);
-            // Forwards(8);
-            // Backwards(6);
+            orientationChecker(90);
+            Forwards(15);
+            slideLeft(20.5);
+            Forwards(8);
+            Backwards(6);
             TurnLeft(90);
-            orientationChecker(-90);
-            telemetry.addData("Turn","Corrected");
-            telemetry.update();
-            sleep(1000);
-            // Forwards(20);
-            TurnLeft(35);
-            orientationChecker(-35);
-            telemetry.addData("Turn","Corrected");
-            telemetry.update();
-            sleep(1000);
-            // slideRight(9);
-            // Forwards(55);
-            TurnLeft(1);
-            orientationChecker(-1);
-            telemetry.addData("Turn","Corrected");
-            telemetry.update();
-            sleep(1000);
-            // Backwards(300);
+            orientationChecker(180);
+            Forwards(20);
+            TurnLeft(45);
+            orientationChecker(-135);
+            slideRight(9);
+            Forwards(55);
+            Backwards(300);
             break;
         }
         stopAllMotors();

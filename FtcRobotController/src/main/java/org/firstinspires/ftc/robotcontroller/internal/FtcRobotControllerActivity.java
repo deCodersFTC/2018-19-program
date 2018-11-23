@@ -40,6 +40,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.hardware.Camera;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.net.wifi.WifiManager;
@@ -55,11 +56,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
 import com.google.blocks.ftcrobotcontroller.BlocksActivity;
 import com.google.blocks.ftcrobotcontroller.ProgrammingModeActivity;
 import com.google.blocks.ftcrobotcontroller.ProgrammingModeControllerImpl;
@@ -131,6 +132,8 @@ public class FtcRobotControllerActivity extends Activity
   private static final int REQUEST_CONFIG_WIFI_CHANNEL = 1;
   private static final int NUM_GAMEPADS = 2;
 
+  public Camera camera;
+
   protected WifiManager.WifiLock wifiLock;
   protected RobotConfigFileManager cfgFileMgr;
 
@@ -174,6 +177,36 @@ public class FtcRobotControllerActivity extends Activity
     }
 
   }
+    private Camera openFrontFacingCamera() {
+      int cameraId = -1;
+      Camera cam = null;
+      int numberOfCameras = Camera.getNumberOfCameras();
+      for (int i = 0; i < numberOfCameras; i++) {
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(i, info);
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+          cameraId = i;
+          break;
+        }
+      }
+      try {
+        cam = Camera.open(cameraId);
+      } catch (Exception e) {
+
+      }
+      return cam;
+    }
+
+    public void initPreview(final Camera camera, final CameraOp context, final Camera.PreviewCallback previewCallback) {
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          context.preview = new CameraPreview(FtcRobotControllerActivity.this, camera, previewCallback);
+          FrameLayout previewLayout = (FrameLayout) findViewById(R.id.previewLayout);
+          previewLayout.addView(context.preview);
+        }
+      });
+    }
 
   protected ServiceConnection connection = new ServiceConnection() {
     @Override

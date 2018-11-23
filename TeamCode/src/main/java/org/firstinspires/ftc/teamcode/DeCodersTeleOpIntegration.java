@@ -169,7 +169,7 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
             //     positionIntakeMechanism(TARGET_POSITION_DEPOSIT);
             // } else if (gamepad1.y){
             //     intakeLiftSpeed = 0.75;
-            //     positionIntakeMechanism(TARGET_POSITION_COLLECT);
+            //     positionIntakeMechan\ism(TARGET_POSITION_COLLECT);
             // }
 
 
