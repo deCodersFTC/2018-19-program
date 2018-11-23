@@ -181,7 +181,7 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
             // - This uses basic math to combine motions and is easier to drive straight.
             double drive = gamepad1.left_stick_y;
             double turn  = -gamepad1.right_stick_x;
-            double slide = gamepad1.left_stick_x;
+            double slide = -gamepad1.left_stick_x;
 
             //Constructing
             LeftFrontPower = drive + slide + turn;
