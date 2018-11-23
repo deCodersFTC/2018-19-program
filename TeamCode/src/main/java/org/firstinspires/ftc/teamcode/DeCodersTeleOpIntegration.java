@@ -15,7 +15,7 @@
  * promote products derived from this software without specific prior written permission.
  *
  * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * LICENSE`. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
@@ -145,7 +145,7 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
                 lift.setPower(0);
             }
             if(gamepad2.left_trigger>0){
-                intakeLift.setPower(0.35);
+                intakeLift.setPower(0.50);
             }
             else if(gamepad2.right_trigger>0){
                 intakeLift.setPower(-0.65);
@@ -214,6 +214,7 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
             telemetry.update();
         }
     }
+
 
 }
 
