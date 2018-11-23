@@ -1,6 +1,4 @@
 /* Copyright (c) 2017 FIRST. All rights reserved.
-
- * Written by deCoders Robotics Team
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -31,15 +29,15 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-import java.util.concurrent.TimeUnit;
+import com.qualcomm.robotcore.util.Range;
 
 
 /**
@@ -55,172 +53,163 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
+@Autonomous(name="AutonomoushookDescent", group="Linear Opmode")
 
-
-@Autonomous(name="Hook Descend Code", group="Linear Opmode")
-//@Disabled
-public class AutonomousHookDescent extends LinearOpMode {
-
-    // thread to run the autonomous code
-    private Thread auto;
+public class AutonomoushookDescent extends LinearOpMode {
 
     // Declare OpMode members.
+    private ElapsedTime runtime = new ElapsedTime();
     private DcMotor lift = null;
-    private DcMotor LeftDriveFront = null;
-    private DcMotor RightDriveFront = null;
-    private DcMotor LeftDriveBack = null;
-    private DcMotor RightDriveBack = null;
-    ElapsedTime gameTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    private DistanceSensor heightSensor = null;
 
-    //public boolean bob = false;
+    public DcMotor  LeftDriveFront;
+    public DcMotor  RightDriveFront;
+    public DcMotor  LeftDriveBack;
+    public DcMotor  RightDriveBack;
 
-    static DistanceSensor heightSensor;
+    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
+    static final double     DRIVE_GEAR_REDUCTION    = 1.0;     // This is < 1.0 if geared UP
+    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     DRIVE_SPEED             = 0.6;
+    static final double     TURN_SPEED              = 0.6;
+    static final double     SLIDE_SPEED             = 0.6;
 
-    public AutonomousHookDescent() {
-        //auto = new Thread(this);
+
+
+
+    public void encoderDrive (double speed, double leftFrontInches, double rightFrontInches, double leftBackInches, double rightBackInches, double timeoutS) {
+        int newLeftFrontTarget;
+        int newRightFrontTarget;
+        int newLeftBackTarget;
+        int newRightBackTarget;
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            newLeftFrontTarget = LeftDriveFront.getCurrentPosition() + (int)(leftFrontInches * COUNTS_PER_INCH);
+            newRightFrontTarget = RightDriveFront.getCurrentPosition() + (int)(rightFrontInches * COUNTS_PER_INCH);
+            newLeftBackTarget = LeftDriveBack.getCurrentPosition() + (int)(leftBackInches * COUNTS_PER_INCH);
+            newRightBackTarget = RightDriveBack.getCurrentPosition() + (int)(rightBackInches * COUNTS_PER_INCH);
+
+
+            LeftDriveFront.setTargetPosition(newLeftFrontTarget);
+            RightDriveFront.setTargetPosition(newRightFrontTarget);
+            LeftDriveBack.setTargetPosition(newLeftBackTarget);
+            RightDriveBack.setTargetPosition(newRightBackTarget);
+
+            // Turn On RUN_TO_POSITION
+            LeftDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            RightDriveFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            LeftDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            RightDriveBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            LeftDriveBack.setPower(Math.abs(speed));
+            LeftDriveFront.setPower(Math.abs(speed));
+            RightDriveBack.setPower(Math.abs(speed));
+            RightDriveFront.setPower(Math.abs(speed));
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() && (runtime.seconds() < timeoutS) && ( LeftDriveBack.isBusy() &&  RightDriveBack.isBusy())) {
+
+
+            }
+
+
+
+            // Stop all motion;
+            LeftDriveBack.setPower(0);
+            RightDriveBack.setPower(0);
+            LeftDriveFront.setPower(0);
+            RightDriveFront.setPower(0);
+            lift.setPower(0);
+            //Set to RUN_USING_ENCODER
+            LeftDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            RightDriveFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            LeftDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            RightDriveBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        }
     }
 
-    /*
-    public void run() {
-        autonomousOperation();
+    public void Backwards(double distance){
+        encoderDrive(DRIVE_SPEED,distance,distance,distance,distance, 5);
     }
-    */
-
-    public boolean isDone() {
-        if (gameTimer.time() > 29000) // almost 30 seconds
-            return true;
-        if (opModeIsActive())
-            return false;
-        return true;
+    public void Forwards(double distance){
+        encoderDrive(DRIVE_SPEED, -distance, -distance, -distance, -distance, 5);
+    }
+    public void TurnLeft(double a){
+        double degrees = a * 24/90;
+        encoderDrive(TURN_SPEED, degrees, -degrees, degrees,- degrees,5);
+    }
+    public void TurnRight(double a){
+        double degrees = a * 24/90;
+        encoderDrive(TURN_SPEED, -degrees, degrees, -degrees, degrees, 5);
+    }
+    public void slideLeft(double distance){
+        encoderDrive(SLIDE_SPEED,-distance,distance,distance,-distance,5);
+    }
+    public void slideRight(double distance){
+        encoderDrive(SLIDE_SPEED,distance,-distance,-distance,distance,5);
     }
 
-    public void stopRobot() {
-        telemetry.addData("robot has STOPPED", "");
-        telemetry.update();
-    }
 
-    @Override
+
     public void runOpMode() {
-        // keep extending arm till the all 4 wheels touch the floor
-
-        // write all initialization code here
-        //
-
-        waitForStart();
-        System.out.println("Autonomous started!");
-        gameTimer.reset();
-        telemetry.addData("Time", gameTimer.time()*1.0/1000);
-        telemetry.update();
-
-        while (heightSensor.getDistance(DistanceUnit.INCH) > DriveConstants.ZERO_HEIGHT){
-            lift.setPower(1.0);
-            //descending robot
-        }
-        // robot has landed.
-        //if (Thread.currentThread().isInterrupted()) {
-        if (isDone()) {
-            stopRobot();
-            return;
-        }
-
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        // keep moving arm up further for additional ARM_LIFT_OFFSE_TIME
-        lift.setTargetPosition(DriveConstants.ARM_LIFT_OFFSET);
-
-        /* (Thread.interrupted()) {
-            return;
-        }*/
-
-        // move the robot to the side to extricate the arm from the
-        // lander for MOVE_TIME seconds
-        for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(DriveConstants.MOVE_TIME);stop>System.nanoTime();) {
-            LeftDriveFront.setPower(1.0);
-            RightDriveFront.setPower(-1.0);
-            LeftDriveBack.setPower(-1.0);
-            RightDriveBack.setPower(1.0);
-            //uses the mecanum wheels to move robot sideways and out of the hook for MOVE_TIME seconds
-        }
-        if (isDone()) {
-            stopRobot();
-            return;
-        }
-
-        while (heightSensor.getDistance(DistanceUnit.INCH) > DriveConstants.ZERO_HEIGHT){
-            lift.setPower(-1.0);
-            //shrinks the arm back down
-        }
-        if (isDone()) {
-            stopRobot();
-            return;
-        }
-
-        for (long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(DriveConstants.BACKUP_TIME);stop>System.nanoTime();) {
-            LeftDriveFront.setPower(-1.0);
-            RightDriveFront.setPower(-1.0);
-            LeftDriveBack.setPower(-1.0);
-            RightDriveBack.setPower(-1.0);
-            //reverses the robot and backes it away from the tower for 5 seconds
-        }
-        if (isDone()) {
-            stopRobot();
-            return;
-        }
-
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + gameTimer.time());
-        telemetry.addData("Distance from Ground", heightSensor.getDistance(DistanceUnit.INCH));
-        telemetry.update();
-
-    }
-
-
-    //@Override
-    public void oldRunOpMode() {
-
-        //bob = true;
-
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        // Lift initialization
-        lift = hardwareMap.get(DcMotor.class, DriveConstants.HOOK_DEVICE_NAME);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+        lift  = hardwareMap.get(DcMotor.class, "lift");
+        heightSensor = hardwareMap.get(DistanceSensor.class, "Height");
+
+        LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
+        RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
+        LeftDriveBack    = hardwareMap.get(DcMotor.class, "LeftDriveBack");
+        RightDriveBack  = hardwareMap.get(DcMotor.class, "RightDriveBack");
+        LeftDriveFront.setDirection(DcMotor.Direction.REVERSE);
+        RightDriveFront.setDirection(DcMotor.Direction.FORWARD);
+        LeftDriveBack.setDirection(DcMotor.Direction.REVERSE);
+        RightDriveBack.setDirection(DcMotor.Direction.FORWARD);
+
+
+
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
         lift.setDirection(DcMotor.Direction.FORWARD);
 
-        // Heght sensor
-        heightSensor = hardwareMap.get(DistanceSensor.class, DriveConstants.HEIGHT_SENSOR_NAME);
+        // Wait for the game to start (driver presses PLAY)
+        waitForStart();
+        runtime.reset();
 
-        // wheel initialization
-        LeftDriveFront = hardwareMap.get(DcMotor.class, DriveConstants.LEFT_FRONT_WHEEL_NAME);
-        RightDriveFront = hardwareMap.get(DcMotor.class, DriveConstants.RIGHT_FRONT_WHEEL_NAME);
-        LeftDriveBack = hardwareMap.get(DcMotor.class, DriveConstants.LEFT_REAR_WHEEL_NAME);
-        RightDriveBack = hardwareMap.get(DcMotor.class, DriveConstants.RIGHT_REAR_WHEEL_NAME);
-
-
-        LeftDriveFront.setDirection(DcMotor.Direction.FORWARD);
-        RightDriveFront.setDirection(DcMotor.Direction.REVERSE);
-        LeftDriveBack.setDirection(DcMotor.Direction.FORWARD);
-        RightDriveBack.setDirection(DcMotor.Direction.REVERSE);
-
-
-
-
-
-        // run until the end of the match (driver presses STOP
-        // or the timer expires)
-
-        // start the autonomous operation
-        auto.start();
+        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-        }
 
-        // stop the robot operation.
-        auto.interrupt();
-        lift.setPower(0);
-        stop();
+            if(heightSensor.getDistance(DistanceUnit.INCH) > 4){
+                lift.setPower(1.0);
+
+            }
+            else{
+                lift.setPower(0);
+                slideLeft(0.1);
+            }
+
+
+
+            // Show the elapsed game time and wheel power.
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("From ground", heightSensor.getDistance(DistanceUnit.INCH));
+            telemetry.update();
+        }
     }
 }
