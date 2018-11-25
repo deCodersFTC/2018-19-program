@@ -32,6 +32,10 @@ android {
         }
     }
 
+    aaptOptions {
+        noCompress "tflite"
+    }
+
     defaultConfig {
         applicationId 'com.qualcomm.ftcrobotcontroller'
         minSdkVersion 19
@@ -87,8 +91,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 'JavaVersion.VERSION_1_8'
-        targetCompatibility 'JavaVersion.VERSION_1_8'
+        sourceCompatibility '1.8'
+        targetCompatibility '1.8'
     }
 
     sourceSets.main {
