@@ -114,9 +114,9 @@ public class IMUTurnFunction extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        if(opModeIsActive){
+        if(opModeIsActive()){
             /** Run your code here
-             *  Some extra things:
+             *  Some extra things:````````````````````````````````
              *  1) The TurnLeft will already be defined in the autonomous program.
              *  2) The first line in AccurateTurn() makes the turn easier for the user because
              *     otherwise, inserting 90˚ would result in a left turn. With this change, 90˚
