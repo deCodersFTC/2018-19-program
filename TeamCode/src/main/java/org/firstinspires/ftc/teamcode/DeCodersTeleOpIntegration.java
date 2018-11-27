@@ -130,15 +130,15 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
             double RightBackPower;
 
 
-            telemetry.addData("B a=", gamepad1.a);
-            telemetry.addData("B y=", gamepad1.y);
+            telemetry.addData("Left Bumper", gamepad1.left_bumper);
+            telemetry.addData("Right Bumper", gamepad1.right_bumper);
             telemetry.addData("Direction=", direction);
             telemetry.addData("mencoder=", lift.getTargetPosition());
 
-            if (gamepad1.a == true) {
+            if (gamepad1.left_bumper == true) {
                 direction = DcMotor.Direction.REVERSE;
                 lift.setPower(-1);
-            } else if (gamepad1.y == true) {
+            } else if (gamepad1.right_bumper == true) {
                 direction = DcMotor.Direction.FORWARD;
                 lift.setPower(1);
             } else {
@@ -204,8 +204,7 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
 
 
             //Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Written by", "Intake SubTeam");
+            telemetry.addData("Written by", "deCoders Robotics");
             telemetry.addData("intakeSpin Motor Speed", intakeSpin.getPower());
             telemetry.addData("intakeLift Motor Speed", intakeLift.getPower());
             telemetry.addData("intakeLift.getCurrentPosition", intakeLift.getCurrentPosition());
