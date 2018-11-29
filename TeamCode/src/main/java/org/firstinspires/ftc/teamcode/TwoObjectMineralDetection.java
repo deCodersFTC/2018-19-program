@@ -112,60 +112,58 @@ public class TwoObjectMineralDetection extends LinearOpMode {
                     // the last time that call was made.
                     List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
                     if (updatedRecognitions != null) {
-                      telemetry.addData("# Object Detected", updatedRecognitions.size());
-                      if (updatedRecognitions.size() == 2) {
-                        int goldMineralX = -1;
-                        int silverMineral1X = -1;
-                        int silverMineral2X = -1;
-                        for (Recognition recognition : updatedRecognitions) {
-                          if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                            goldMineralX = (int) recognition.getLeft();
-                          } else if (silverMineral1X == -1) {
-                            silverMineral1X = (int) recognition.getLeft();
-                          } else {
-                            silverMineral2X = (int) recognition.getLeft();
-                          }
+                        telemetry.addData("# Object Detected", updatedRecognitions.size());
+                        if (updatedRecognitions.size() == 2) {
+                            int goldMineralX = -1;
+                            int silverMineral1X = -1;
+                            int silverMineral2X = -1;
+                            for (Recognition recognition : updatedRecognitions) {
+                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                    goldMineralX = (int) recognition.getLeft();
+                                } else if (silverMineral1X == -1) {
+                                    silverMineral1X = (int) recognition.getLeft();
+                                } else {
+                                    silverMineral2X = (int) recognition.getLeft();
+                                }
+                            }
+                            // If 1 gold and 1 silver is detected
+                            if(silverMineral1X != -1 && silverMineral2X != -1){
+                                telemetry.addData("Detected Objects", "2 Silvers");
+                                telemetry.addData("Gold Mineral Position", "Left");
+                            }
+                            else if(goldMineralX != -1 && silverMineral1X != -1){
+                                telemetry.addData("Detected Objects", "Gold and Silver");
+
+                                for (Recognition recognition : updatedRecognitions) {
+
+
+                                    if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                        goldMineralX = (int) recognition.getLeft();
+                                        if (goldMineralX < silverMineral1X) {
+                                            telemetry.addData("Gold Mineral Position", "Center");
+                                        } else{
+                                            telemetry.addData("Gold Mineral Position", "Right");
+                                        }
+                                    }
+
+                                }
+                            }
+                            telemetry.update();
+
+
+                            /**
+                             if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+                             if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
+                             telemetry.addData("Gold Mineral Position", "Left");
+                             } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
+                             telemetry.addData("Gold Mineral Position", "Right");
+                             } else {
+                             telemetry.addData("Gold Mineral Position", "Center");
+                             }
+                             }
+                             */
                         }
-                        // If 1 gold and 1 silver is detected
-                          if(silverMineral1X != -1 && silverMineral2X != -1){
-                            telemetry.addData("Detected Objects", "2 Silvers");
-                            telemetry.addData("Gold Mineral Position", "Left");
-                          }
-                          else if(goldMineralX != -1 && silverMineral1X != -1){
-                            telemetry.addData("Detected Objects", "Gold and Silver");
-                            goldMineralX = -1;
-                            silverMineral1X = -1;
-                              for (Recognition recognition : updatedRecognitions) {
-                                  if (goldMineralX != -1 && silverMineral1X != -1) {
-
-
-                                  if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                      goldMineralX = (int) recognition.getLeft();
-                                      if (goldMineralX < silverMineral1X) {
-                                          telemetry.addData("Gold Mineral Position", "Center");
-                                      } else {
-                                          telemetry.addData("Gold Mineral Position", "Right");
-                                      }
-                                  }
-                              }
-                              }
-                          }
-                          telemetry.update();
-
-
-                          /**
-                        if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-                          if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-                            telemetry.addData("Gold Mineral Position", "Left");
-                          } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-                            telemetry.addData("Gold Mineral Position", "Right");
-                          } else {
-                            telemetry.addData("Gold Mineral Position", "Center");
-                          }
-                        }
-                        */
-                      }
-                      telemetry.update();
+                        telemetry.update();
                     }
                 }
             }
@@ -199,7 +197,7 @@ public class TwoObjectMineralDetection extends LinearOpMode {
      */
     private void initTfod() {
         int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
-            "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
