@@ -136,15 +136,18 @@ public class TwoObjectMineralDetection extends LinearOpMode {
                             goldMineralX = -1;
                             silverMineral1X = -1;
                               for (Recognition recognition : updatedRecognitions) {
+                                  if (goldMineralX != -1 && silverMineral1X != -1) {
+
+
                                   if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                       goldMineralX = (int) recognition.getLeft();
-                                      if(goldMineralX < silverMineral1X){
+                                      if (goldMineralX < silverMineral1X) {
                                           telemetry.addData("Gold Mineral Position", "Center");
-                                      }
-                                      else{
+                                      } else {
                                           telemetry.addData("Gold Mineral Position", "Right");
+                                      }
                                   }
-                                  }
+                              }
                               }
                           }
                           telemetry.update();
