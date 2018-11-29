@@ -29,15 +29,16 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import java.util.List;
+
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
-import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+
+import java.util.List;
 
 /**
  * This 2018-2019 OpMode illustrates the basics of using the TensorFlow Object Detection API to
@@ -49,8 +50,8 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@TeleOp(name = "MineralDetection", group = "Concept")
-public class MineralDetection extends LinearOpMode {
+@TeleOp(name = "TwoObjectMineralDetection", group = "Concept")
+public class TwoObjectMineralDetection extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
     private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
@@ -105,13 +106,14 @@ public class MineralDetection extends LinearOpMode {
             }
 
             while (opModeIsActive()) {
+                boolean bothSilver = false;
                 if (tfod != null) {
                     // getUpdatedRecognitions() will return null if no new information is available since
                     // the last time that call was made.
                     List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
                     if (updatedRecognitions != null) {
                       telemetry.addData("# Object Detected", updatedRecognitions.size());
-                      if (updatedRecognitions.size() == 3) {
+                      if (updatedRecognitions.size() == 2) {
                         int goldMineralX = -1;
                         int silverMineral1X = -1;
                         int silverMineral2X = -1;
@@ -124,6 +126,31 @@ public class MineralDetection extends LinearOpMode {
                             silverMineral2X = (int) recognition.getLeft();
                           }
                         }
+                        // If 1 gold and 1 silver is detected
+                          if(silverMineral1X != -1 && silverMineral2X != -1){
+                            telemetry.addData("Detected Objects", "2 Silvers");
+                            telemetry.addData("Gold Mineral Position", "Left");
+                          }
+                          else if(goldMineralX != -1 && silverMineral1X != -1){
+                            telemetry.addData("Detected Objects", "Gold and Silver");
+                            goldMineralX = -1;
+                            silverMineral1X = -1;
+                              for (Recognition recognition : updatedRecognitions) {
+                                  if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                      goldMineralX = (int) recognition.getLeft();
+                                      if(goldMineralX < silverMineral1X){
+                                          telemetry.addData("Gold Mineral Position", "Center");
+                                      }
+                                      else{
+                                          telemetry.addData("Gold Mineral Position", "Right");
+                                  }
+                                  }
+                              }
+                          }
+                          telemetry.update();
+
+
+                          /**
                         if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
                           if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
                             telemetry.addData("Gold Mineral Position", "Left");
@@ -133,6 +160,7 @@ public class MineralDetection extends LinearOpMode {
                             telemetry.addData("Gold Mineral Position", "Center");
                           }
                         }
+                        */
                       }
                       telemetry.update();
                     }
