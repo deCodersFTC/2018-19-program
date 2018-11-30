@@ -69,8 +69,8 @@ import java.util.List;
  */
 
 
-@Autonomous(name = "Depot Autonomous", group = "Linear OpMode")
-public class DepotAutonomous extends LinearOpMode {
+@Autonomous(name = "One Mineral Detection", group = "Linear OpMode")
+public class OneMineralDetection extends LinearOpMode {
 
 
     /**
@@ -249,12 +249,10 @@ public class DepotAutonomous extends LinearOpMode {
         // TBD: The bot should come back to neutral position so that the Marker/ Parking code can be developed independently
 
         if (opModeIsActive()) {
-            int a = GOLD_CENTER;
-            switch(a){
+            switch(getGoldPosition2()){
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
-                    slideLeft(8);
                     AccurateTurn(-90);
                     slideLeft(5);
                     // Knock the Gold mineral
@@ -265,22 +263,17 @@ public class DepotAutonomous extends LinearOpMode {
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
-                    slideLeft(8);
-                    Forwards(3);
-                    slideLeft(50);
-
-                    //AccurateTurn(-90);
-                   // slideLeft(5);
+                    AccurateTurn(-90);
+                    slideLeft(3);
                     // Knock the Gold mineral
-                   // Forwards(25);
+                    Forwards(20);
                     // Come back to neutral position
-
+                    Backwards(6);
                     //Do center code
                     break;
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    slideLeft(8);
                     AccurateTurn(-90);
                     slideRight(20);
                     // Knock the Gold mineral
@@ -491,6 +484,9 @@ public class DepotAutonomous extends LinearOpMode {
                         else if(goldMineralX<300){
                             return GOLD_RIGHT;
                         }
+                    }
+                    else{
+                        return GOLD_LEFT;
                     }
 
                     telemetry.update();
