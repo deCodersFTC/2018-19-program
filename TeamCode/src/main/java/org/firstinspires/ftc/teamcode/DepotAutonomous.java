@@ -45,6 +45,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.Came
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.vuforia.Vuforia;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -72,58 +74,30 @@ import java.util.List;
 @Autonomous(name = "Depot Autonomous", group = "Linear OpMode")
 public class DepotAutonomous extends LinearOpMode {
 
-
-    /**
-     * TensorFlow initial variables
-     */
-    private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
-    private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
-    private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
     private static final int GOLD_LEFT = 1;
     private static final int GOLD_CENTER = 2;
     private static final int GOLD_RIGHT = 3;
 
-    int goldMineralX = -1;
-    int silverMineral1X = -1;
-    int silverMineral2X = -1;
+    private DcMotor LeftDriveFront;
+    private DcMotor RightDriveFront;
+    private DcMotor LeftDriveBack;
+    private DcMotor RightDriveBack;
+    private DcMotor lift;
+    private DistanceSensor heightSensor;
 
+    static final double COUNTS_PER_MOTOR_REV  = 1440 ; // eg: TETRIX Motor Encoder
+    static final double DRIVE_GEAR_REDUCTION  = 1.0;   // This is < 1.0 if geared UP
+    static final double WHEEL_DIAMETER_INCHES = 4.0 ;  // For figuring circumference
+    static final double COUNTS_PER_INCH       = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double DRIVE_SPEED           = 1.0;
+    static final double TURN_SPEED            = 0.6;
+    static final double SLIDE_SPEED           = 0.6;
 
-    private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor lift = null;
-    private DistanceSensor heightSensor = null;
     Orientation angles;
     double origAngle;
     BNO055IMU imu;
 
-    public DcMotor  LeftDriveFront;
-    public DcMotor  RightDriveFront;
-    public DcMotor  LeftDriveBack;
-    public DcMotor  RightDriveBack;
-
-    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 1.0;     // This is < 1.0 if geared UP
-    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     DRIVE_SPEED             = 0.6;
-    static final double     TURN_SPEED              = 0.6;
-    static final double     SLIDE_SPEED             = 0.6;
-
-    /**
-     * Update the developer key from top level comment
-     */
-    private static final String VUFORIA_KEY = "AeAnL1T/////AAABmTZwSvxDH0lVnljgy5pBgO8UdOWEaAiKyXqKqbABovZRTXBALSqlE0OHSRjJfjhCNHaOesi3e47zVd9aP/HvRyXToIZJvvzHxcjiDn4oYfAonwBGJdtJ2tbMZr91LDtH+xg3m1jiyA+UqCx0X9y0aKuKm4elTo5W9gayS0gW1T7bi1ww30yNScGGQABuYzqth/aUB50JDBnjpJV1Um1RljzpYq9RYQzOe1e+UTdCbznQSwEhFxsQmEM40oi6jjyUIWN+Ud3zcYvJ9hM2vbDOab/a1QZBEF6X/T/NCkeCsjQFj7yhA+hLFRMakOikLOb9ZDkrau7g+AxJ7M94puQiJzkkv6VTYn/C64jhur7CxzfP";
-
-    /**
-     * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
-     * localization engine.
-     */
-    private VuforiaLocalizer vuforia;
-
-    /**
-     * {@link #tfod} is the variable we will use to store our instance of the Tensor Flow Object
-     * Detection engine.
-     */
-    private TFObjectDetector tfod;
+    private ElapsedTime runtime = new ElapsedTime();
 
     public void orientationChecker(double angleTarget){
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -161,6 +135,7 @@ public class DepotAutonomous extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -220,63 +195,61 @@ public class DepotAutonomous extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        // Landing
-
+        /**
+         * Landing code
+         */
+        /*
         while (opModeIsActive()) {
             Forwards(3);
-            //     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-            //     if (heightSensor.getDistance(DistanceUnit.INCH) > 4) {
-            //         lift.setPower(1.0);
-            //         // Show the elapsed game time and wheel power.
-            //         telemetry.addData("Status", "Run Time: " + runtime.toString());
-            //         telemetry.addData("From ground", heightSensor.getDistance(DistanceUnit.INCH));
-            //         telemetry.update();
-
-            //     } else {
-            //         lift.setPower(0);
-            //         Forwards(3);
-            //         break;
-            //     }
-            break;
+            if (heightSensor.getDistance(DistanceUnit.INCH) > 4) {
+                 lift.setPower(1.0);
+                 // Show the elapsed game time and wheel power.
+                 telemetry.addData("Status", "Run Time: " + runtime.toString());
+                 telemetry.addData("From ground", heightSensor.getDistance(DistanceUnit.INCH));
+                 telemetry.update();
+             } else {
+                 lift.setPower(0);
+                 Forwards(3);
+                 break;
+             }
         }
+        */
 
-
-        // Sampling
-        // TBD: Need to add a timeout of 3 seconds for Sampling. If we don't sense anything in that time,
-        // assume gold is in center and move on.
-        // TBD: Tune the distances for all the 3 possibilities of gold mineral.
-        // TBD: The bot should come back to neutral position so that the Marker/ Parking code can be developed independently
+        /**
+         * Sampling
+         * TBD: Need to add a timeout of 3 seconds for Sampling. If we don't sense anything in that time,
+         * assume gold is in center and move on.
+         * TBD: Tune the distances for all the 3 possibilities of gold mineral.
+         * TBD: The bot should come back to neutral position so that the Marker/ Parking code can be developed independently
+         */
 
         if (opModeIsActive()) {
-            int a = GOLD_CENTER;
-            switch(a){
+            int goldPosition = GOLD_LEFT;
+            switch (goldPosition) {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
-                    slideLeft(8);
+                    slideLeft(15);
+                    Backwards(18);
                     AccurateTurn(-90);
-                    slideLeft(5);
-                    // Knock the Gold mineral
-                    Forwards(20);
-                    // Come back to neutral position
-                    Backwards(6);
+                    Forwards(30);
+                    AccurateTurn(45);
+                    Forwards(30);
+                    AccurateTurn(90);
+                    Forwards(80);
                     break;
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
-                    slideLeft(8);
-                    Forwards(3);
-                    slideLeft(50);
-
-                    //AccurateTurn(-90);
-                   // slideLeft(5);
-                    // Knock the Gold mineral
-                   // Forwards(25);
-                    // Come back to neutral position
-
-                    //Do center code
+                    slideLeft(10);
+                    AccurateTurn(-90);
+                    Forwards(55);
+                    AccurateTurn(-45);
+                    Backwards(80);
                     break;
+
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
@@ -291,18 +264,8 @@ public class DepotAutonomous extends LinearOpMode {
 
                     break;
             }
-
-            // Come back to neutral position
-            Backwards(20);
         }
 
-        while (opModeIsActive()) {
-
-            // TBD: Move to Depot and drop the marker
-
-
-            // TBD: Move to park the bot near the crater
-        }
 
     }
 
@@ -320,7 +283,6 @@ public class DepotAutonomous extends LinearOpMode {
             newRightFrontTarget = RightDriveFront.getCurrentPosition() + (int)(rightFrontInches * COUNTS_PER_INCH);
             newLeftBackTarget = LeftDriveBack.getCurrentPosition() + (int)(leftBackInches * COUNTS_PER_INCH);
             newRightBackTarget = RightDriveBack.getCurrentPosition() + (int)(rightBackInches * COUNTS_PER_INCH);
-
 
             LeftDriveFront.setTargetPosition(newLeftFrontTarget);
             RightDriveFront.setTargetPosition(newRightFrontTarget);
@@ -380,10 +342,10 @@ public class DepotAutonomous extends LinearOpMode {
         double degrees = a * 24/90;
         encoderDrive(TURN_SPEED, -degrees, degrees, -degrees, degrees, 5);
     }
-    public void slideLeft(double distance){
+    public void slideRight(double distance){
         encoderDrive(SLIDE_SPEED,-distance,distance,distance,-distance,5);
     }
-    public void slideRight(double distance){
+    public void slideLeft(double distance){
         encoderDrive(SLIDE_SPEED,distance,-distance,-distance,distance,5);
     }
 
@@ -397,23 +359,48 @@ public class DepotAutonomous extends LinearOpMode {
 
     public void AccurateTurn(double degrees){
         degrees *= -1;
-        double origAngle = angles.firstAngle;
-        double newAngle = origAngle + degrees;
+        Orientation turnAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        double origAngle = turnAngles.firstAngle;
+        double targetAngle = origAngle + degrees;
         double difference = degrees;
         while (Math.abs(difference) > 0.5) {
             TurnLeft(difference * 0.8);
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            difference = newAngle - angles.firstAngle;
+            turnAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            difference = targetAngle - turnAngles.firstAngle;
             // telemetry.addData("Difference", difference);
-            // telemetry.addData("New angle", newAngle);
-            // telemetry.addData("Angles.firstAngle", angles.firstAngle);
+            // telemetry.addData("New angle", targetAngle);
+            // telemetry.addData("Angles.firstAngle", turnAngles.firstAngle);
             // telemetry.update();
 
         }
 
     }
 
+    /**
+     * Runs the object detection algorithm and returns the position of the gold mineral
+     * @return
+     */
+     // Update the developer key from top level comment
+    private static final String VUFORIA_KEY = "AeAnL1T/////AAABmTZwSvxDH0lVnljgy5pBgO8UdOWEaAiKyXqKqbABovZRTXBALSqlE0OHSRjJfjhCNHaOesi3e47zVd9aP/HvRyXToIZJvvzHxcjiDn4oYfAonwBGJdtJ2tbMZr91LDtH+xg3m1jiyA+UqCx0X9y0aKuKm4elTo5W9gayS0gW1T7bi1ww30yNScGGQABuYzqth/aUB50JDBnjpJV1Um1RljzpYq9RYQzOe1e+UTdCbznQSwEhFxsQmEM40oi6jjyUIWN+Ud3zcYvJ9hM2vbDOab/a1QZBEF6X/T/NCkeCsjQFj7yhA+hLFRMakOikLOb9ZDkrau7g+AxJ7M94puQiJzkkv6VTYn/C64jhur7CxzfP";
+
+     // {@link #vuforia} is the variable we will use to store our instance of the Vuforia
+     // localization engine.
+    private VuforiaLocalizer vuforia;
+
+     // {@link #tfod} is the variable we will use to store our instance of the Tensor Flow Object
+     // Detection engine.
+    private TFObjectDetector tfod;
+
+    private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
+    private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
+    private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
     public int getGoldPosition2() {
+        /**
+         * TensorFlow initial variables
+         */
+        int goldMineralX = -1;
+        int silverMineral1X = -1;
+        int silverMineral2X = -1;
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
         initVuforia();
@@ -424,7 +411,7 @@ public class DepotAutonomous extends LinearOpMode {
             telemetry.addData("Sorry!", "This device is not compatible with TFOD");
         }
 
-        /** Wait for the game to begin */
+        // Wait for the game to begin
         telemetry.addData(">", "Press Play to start tracking");
         telemetry.update();
         //waitForStart();
@@ -504,81 +491,6 @@ public class DepotAutonomous extends LinearOpMode {
         }
         return GOLD_CENTER;
     }
-    // public int getGoldPosition() {
-    //     // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
-    //     // first.
-    //     initVuforia();
-
-    //     if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
-    //         initTfod();
-    //     } else {
-    //         telemetry.addData("Sorry!", "This device is not compatible with TFOD");
-    //     }
-
-    //     /** Wait for the game to begin */
-    //     telemetry.addData(">", "Press Play to start tracking");
-    //     telemetry.update();
-    //     //waitForStart();
-
-    //     if (opModeIsActive()) {
-    //         /** Activate Tensor Flow Object Detection. */
-    //         if (tfod != null) {
-    //             tfod.activate();
-    //         }
-    //     }
-    //     runtime.reset();
-    //     while (opModeIsActive() && (runtime.seconds ()< 3)) {
-    //         if (tfod != null) {
-    //             // getUpdatedRecognitions() will return null if no new information is available since
-    //             // the last time that call was made.
-    //             List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-    //             if (updatedRecognitions != null) {
-    //                 telemetry.addData("# Object Detected", updatedRecognitions.size());
-    //                 if (updatedRecognitions.size() == 2) {
-    //                     int goldMineralX = -1;
-    //                     int silverMineral1X = -1;
-    //                     int silverMineral2X = -1;
-    //                     for (Recognition recognition : updatedRecognitions) {
-    //                         if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-    //                             goldMineralX = (int) recognition.getLeft();
-    //                         } else if (silverMineral1X == -1) {
-    //                             silverMineral1X = (int) recognition.getLeft();
-    //                         } else {
-    //                             telemetry.addData("Detected Objects", "2 Silvers");
-    //                             telemetry.addData("Gold Mineral Position", "Left");
-    //                             return GOLD_LEFT;
-    //                         }
-    //                     }
-    //                     // If 1 gold and 1 silver is detected
-
-    //                     if(goldMineralX != -1 && silverMineral1X != -1){
-    //                         telemetry.addData("Detected Objects", "Gold and Silver");
-    //                         if (goldMineralX > silverMineral1X) {
-    //                             telemetry.addData("Gold Mineral Position", "Center");
-    //                             return GOLD_CENTER;
-    //                         } else{
-    //                             telemetry.addData("Gold Mineral Position", "Right");
-    //                             return GOLD_RIGHT;
-
-    //                         }
-
-
-
-    //                     }
-    //                     telemetry.update();
-
-    //                 }
-    //                 telemetry.update();
-    //             }
-    //         }
-    //     }
-
-
-    //     if (tfod != null) {
-    //         tfod.shutdown();
-    //     }
-    //     return GOLD_CENTER;
-    // }
 
     /**
      * Initialize the Vuforia localization engine.
