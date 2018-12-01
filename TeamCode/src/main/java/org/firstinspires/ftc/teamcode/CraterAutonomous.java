@@ -200,7 +200,6 @@ public class CraterAutonomous extends LinearOpMode {
          */
 
         while (opModeIsActive()) {
-            //Forwards(3);
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
             if (heightSensor.getDistance(DistanceUnit.INCH) > 4) {
@@ -211,7 +210,6 @@ public class CraterAutonomous extends LinearOpMode {
                 telemetry.update();
             } else {
                 lift.setPower(0);
-                //Forwards(3);
                 break;
             }
         }
@@ -226,21 +224,17 @@ public class CraterAutonomous extends LinearOpMode {
          */
 
         if (opModeIsActive()) {
-            //int goldPosition = GOLD_LEFT;
             switch (getGoldPosition2()) {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
                     Forwards(3);
                     slideLeft(20);
-//                    AccurateTurn(-90);
-//                    Forwards(10);
                     Backwards(23);
                     slideLeft(20);
                     AccurateTurn(-45);
                     slideLeft(12);
                     Forwards(30);
-
                     break;
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
@@ -259,12 +253,9 @@ public class CraterAutonomous extends LinearOpMode {
                     AccurateTurn(45);
                     slideLeft(6);
                     Backwards(21);
-
                     break;
             }
         }
-
-
     }
     public void timedSpin(long timeMS){
         intakeSpin.setPower(-1);
@@ -425,7 +416,7 @@ public class CraterAutonomous extends LinearOpMode {
             }
         }
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds ()< 5)) {
+        while (opModeIsActive() && (runtime.seconds ()< 3)) {
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
                 // the last time that call was made.
@@ -436,9 +427,9 @@ public class CraterAutonomous extends LinearOpMode {
 
                         for (Recognition recognition : updatedRecognitions) {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                goldMineralX = (int) recognition.getLeft();
+                                goldMineralX = (int) recognition.getTop();
                             } else if (silverMineral1X == -1) {
-                                silverMineral1X = (int) recognition.getLeft();
+                                silverMineral1X = (int) recognition.getTop();
                             } else {
                                 telemetry.addData("Detected Objects", "2 Silvers");
                                 telemetry.addData("Gold Mineral Position", "Left");
@@ -476,12 +467,9 @@ public class CraterAutonomous extends LinearOpMode {
                         }
                         if (goldMineralX > 300) {
                             return GOLD_CENTER;
-                        } else if (goldMineralX < 300) {
+                        } else  {
                             return GOLD_RIGHT;
                         }
-                    }
-                    else if(getRuntime()>17){
-                        return GOLD_LEFT;
                     }
 
                     telemetry.update();
