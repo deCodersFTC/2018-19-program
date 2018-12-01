@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -83,6 +84,8 @@ public class DepotAutonomous extends LinearOpMode {
     private DcMotor LeftDriveBack;
     private DcMotor RightDriveBack;
     private DcMotor lift;
+    public CRServo intakeSpin = null;
+
     private DistanceSensor heightSensor;
 
     static final double COUNTS_PER_MOTOR_REV  = 1440 ; // eg: TETRIX Motor Encoder
@@ -150,7 +153,7 @@ public class DepotAutonomous extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-
+        intakeSpin = hardwareMap.get(CRServo.class, "intakeSpin");
 
         LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
         RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
@@ -198,24 +201,24 @@ public class DepotAutonomous extends LinearOpMode {
         /**
          * Landing code
          */
-        /*
+
         while (opModeIsActive()) {
-            Forwards(3);
+            //Forwards(3);
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
             if (heightSensor.getDistance(DistanceUnit.INCH) > 4) {
-                 lift.setPower(1.0);
-                 // Show the elapsed game time and wheel power.
-                 telemetry.addData("Status", "Run Time: " + runtime.toString());
-                 telemetry.addData("From ground", heightSensor.getDistance(DistanceUnit.INCH));
-                 telemetry.update();
-             } else {
-                 lift.setPower(0);
-                 Forwards(3);
-                 break;
-             }
+                lift.setPower(1.0);
+                // Show the elapsed game time and wheel power.
+                telemetry.addData("Status", "Run Time: " + runtime.toString());
+                telemetry.addData("From ground", heightSensor.getDistance(DistanceUnit.INCH));
+                telemetry.update();
+            } else {
+                lift.setPower(0);
+                //Forwards(3);
+                break;
+            }
         }
-        */
+
 
         /**
          * Sampling
@@ -226,49 +229,56 @@ public class DepotAutonomous extends LinearOpMode {
          */
 
         if (opModeIsActive()) {
-            int goldPosition = GOLD_LEFT;
-            switch (goldPosition) {
+            //int goldPosition = GOLD_LEFT;
+            switch (getGoldPosition2()) {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
-                    slideLeft(15);
-                    Backwards(18);
-                    AccurateTurn(-90);
-                    Forwards(30);
-                    AccurateTurn(45);
+                    Forwards(3);
+                    slideLeft(20);
+//                    AccurateTurn(-90);
+//                    Forwards(10);
+                    Backwards(23);
+                    slideLeft(20);
+                    AccurateTurn(-45);
+                    slideLeft(12);
                     Forwards(30);
                     AccurateTurn(90);
-                    Forwards(80);
+                    Forwards(3);
+                    timedSpin(1000);
                     break;
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
-                    slideLeft(10);
-                    AccurateTurn(-90);
-                    Forwards(55);
-                    AccurateTurn(-45);
-                    Backwards(80);
+                    Forwards(3);
+                    slideLeft(65);
+                    AccurateTurn(45);
+                    Forwards(6);
+                    timedSpin(1000);
                     break;
 
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    slideLeft(8);
-                    AccurateTurn(-90);
-                    slideRight(20);
-                    // Knock the Gold mineral
+                    Forwards(3);
+                    slideLeft(20);
                     Forwards(20);
-                    // Come back to neutral position
-                    Backwards(20);
-                    slideLeft(5);
-
+                    slideLeft(20);
+                    AccurateTurn(45);
+                    slideLeft(6);
+                    Backwards(21);
+                    timedSpin(1000);
                     break;
             }
         }
 
 
     }
-
+    public void timedSpin(long timeMS){
+        intakeSpin.setPower(-1);
+        sleep(timeMS);
+        intakeSpin.setPower(0);
+    }
     public void encoderDrive (double speed, double leftFrontInches, double rightFrontInches, double leftBackInches, double rightBackInches, double timeoutS) {
         int newLeftFrontTarget;
         int newRightFrontTarget;
@@ -364,7 +374,7 @@ public class DepotAutonomous extends LinearOpMode {
         double targetAngle = origAngle + degrees;
         double difference = degrees;
         while (Math.abs(difference) > 0.5) {
-            TurnLeft(difference * 0.8);
+            TurnLeft(difference * 0.9);
             turnAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             difference = targetAngle - turnAngles.firstAngle;
             // telemetry.addData("Difference", difference);
@@ -380,15 +390,15 @@ public class DepotAutonomous extends LinearOpMode {
      * Runs the object detection algorithm and returns the position of the gold mineral
      * @return
      */
-     // Update the developer key from top level comment
+    // Update the developer key from top level comment
     private static final String VUFORIA_KEY = "AeAnL1T/////AAABmTZwSvxDH0lVnljgy5pBgO8UdOWEaAiKyXqKqbABovZRTXBALSqlE0OHSRjJfjhCNHaOesi3e47zVd9aP/HvRyXToIZJvvzHxcjiDn4oYfAonwBGJdtJ2tbMZr91LDtH+xg3m1jiyA+UqCx0X9y0aKuKm4elTo5W9gayS0gW1T7bi1ww30yNScGGQABuYzqth/aUB50JDBnjpJV1Um1RljzpYq9RYQzOe1e+UTdCbznQSwEhFxsQmEM40oi6jjyUIWN+Ud3zcYvJ9hM2vbDOab/a1QZBEF6X/T/NCkeCsjQFj7yhA+hLFRMakOikLOb9ZDkrau7g+AxJ7M94puQiJzkkv6VTYn/C64jhur7CxzfP";
 
-     // {@link #vuforia} is the variable we will use to store our instance of the Vuforia
-     // localization engine.
+    // {@link #vuforia} is the variable we will use to store our instance of the Vuforia
+    // localization engine.
     private VuforiaLocalizer vuforia;
 
-     // {@link #tfod} is the variable we will use to store our instance of the Tensor Flow Object
-     // Detection engine.
+    // {@link #tfod} is the variable we will use to store our instance of the Tensor Flow Object
+    // Detection engine.
     private TFObjectDetector tfod;
 
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
@@ -418,12 +428,12 @@ public class DepotAutonomous extends LinearOpMode {
 
         if (opModeIsActive()) {
             /** Activate Tensor Flow Object Detection. */
-            if (tfod != null) {
+            if (tfod != null && getRuntime()>2) {
                 tfod.activate();
             }
         }
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds ()< 3)) {
+        while (opModeIsActive() && (runtime.seconds ()< 5)) {
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
                 // the last time that call was made.
@@ -463,21 +473,23 @@ public class DepotAutonomous extends LinearOpMode {
                         telemetry.update();
 
                     }
-                    else if(updatedRecognitions.size() == 1){
-                        for(Recognition recognition : updatedRecognitions){
-                            if(recognition.getLabel().equals(LABEL_GOLD_MINERAL)){
+
+                    else if(updatedRecognitions.size() == 1) {
+                        for (Recognition recognition : updatedRecognitions) {
+                            if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                 goldMineralX = (int) recognition.getTop();
-                            }
-                            else{
+                            } else {
                                 return GOLD_LEFT;
                             }
                         }
-                        if(goldMineralX>300){
+                        if (goldMineralX > 300) {
                             return GOLD_CENTER;
-                        }
-                        else if(goldMineralX<300){
+                        } else if (goldMineralX < 300) {
                             return GOLD_RIGHT;
                         }
+                    }
+                    else if(getRuntime()>17){
+                        return GOLD_LEFT;
                     }
 
                     telemetry.update();
