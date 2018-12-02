@@ -230,7 +230,7 @@ public class DepotAutonomous extends LinearOpMode {
          */
 
         if (opModeIsActive()) {
-            int goldPosition = GOLD_LEFT;
+            int goldPosition = GOLD_CENTER;
             //switch (getGoldPosition2()) {
             switch(goldPosition) {
                 case GOLD_LEFT:
@@ -248,14 +248,14 @@ public class DepotAutonomous extends LinearOpMode {
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
                     slideLeft(20);
-                    Backwards(10);
                     Backwards(5);
-                    slideLeft(55);
-                    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-                    float current_angle = angles.firstAngle;
-                    AccurateTurn(45 + (current_angle - angle_at_top));
+                    slideLeft(45);
+                    //angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    //float current_angle = angles.firstAngle;
+                    //AccurateTurn(45 + (current_angle - angle_at_top));
+                    TurnRight(45);
+                    //Backwards(30);
                     timedSpin(1000);
-                    Forwards(60);
                     break;
 
                 case GOLD_RIGHT:
@@ -265,7 +265,7 @@ public class DepotAutonomous extends LinearOpMode {
                     Forwards(10);
                     slideLeft(28);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-                    current_angle = angles.firstAngle;
+                    float current_angle = angles.firstAngle;
                     telemetry.addData("current angle", current_angle);
                     telemetry.addData("angle at top", angle_at_top);
                     telemetry.addData("Turning", 45 + (current_angle - angle_at_top));
@@ -438,7 +438,7 @@ public class DepotAutonomous extends LinearOpMode {
             }
         }
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 4)) {
+        while (opModeIsActive() && (runtime.seconds() < 3)) {
             //telemetry.addData("Elapsed Time", runtime.toString());
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
