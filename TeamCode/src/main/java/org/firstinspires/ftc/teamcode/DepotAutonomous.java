@@ -125,6 +125,7 @@ public class DepotAutonomous extends LinearOpMode {
             checknum++;
         }
     }
+
     public void stopAllMotors(){
         LeftDriveBack.setPower(0);
         RightDriveBack.setPower(0);
@@ -201,11 +202,10 @@ public class DepotAutonomous extends LinearOpMode {
         /**
          * Landing code
          */
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        float angle_at_top = angles.firstAngle;
 
         while (opModeIsActive()) {
-            //Forwards(3);
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
             if (heightSensor.getDistance(DistanceUnit.INCH) > 4) {
                 lift.setPower(1.0);
                 // Show the elapsed game time and wheel power.
@@ -214,18 +214,19 @@ public class DepotAutonomous extends LinearOpMode {
                 telemetry.update();
             } else {
                 lift.setPower(0);
-                //Forwards(3);
+                TurnLeft(5);
+                Forwards(4);
+                TurnRight(5);
+
                 break;
             }
         }
 
+        AccurateTurn(angles.firstAngle-angle_at_top);
+
 
         /**
          * Sampling
-         * TBD: Need to add a timeout of 3 seconds for Sampling. If we don't sense anything in that time,
-         * assume gold is in center and move on.
-         * TBD: Tune the distances for all the 3 possibilities of gold mineral.
-         * TBD: The bot should come back to neutral position so that the Marker/ Parking code can be developed independently
          */
 
         if (opModeIsActive()) {
@@ -234,10 +235,8 @@ public class DepotAutonomous extends LinearOpMode {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
-                    Forwards(3);
                     slideLeft(20);
-//                    AccurateTurn(-90);
-//                    Forwards(10);
+                    Backwards(10);
                     Backwards(23);
                     slideLeft(20);
                     AccurateTurn(-45);
@@ -250,19 +249,20 @@ public class DepotAutonomous extends LinearOpMode {
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
-                    Forwards(3);
-                    slideLeft(65);
+                    slideLeft(20);
+                    Backwards(10);
+                    Backwards(5);
+                    slideLeft(55);
                     AccurateTurn(45);
-                    Forwards(6);
                     timedSpin(1000);
+                    Forwards(60);
                     break;
 
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    Forwards(3);
                     slideLeft(20);
-                    Forwards(20);
+                    Forwards(10);
                     slideLeft(20);
                     AccurateTurn(45);
                     slideLeft(6);
@@ -433,20 +433,21 @@ public class DepotAutonomous extends LinearOpMode {
             }
         }
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds ()< 5)) {
+        while (opModeIsActive() && (runtime.seconds() < 4)) {
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
                 // the last time that call was made.
                 List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
                 if (updatedRecognitions != null) {
                     telemetry.addData("# Object Detected", updatedRecognitions.size());
+
                     if (updatedRecognitions.size() == 2) {
 
                         for (Recognition recognition : updatedRecognitions) {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                goldMineralX = (int) recognition.getLeft();
+                                goldMineralX = (int) recognition.getTop();
                             } else if (silverMineral1X == -1) {
-                                silverMineral1X = (int) recognition.getLeft();
+                                silverMineral1X = (int) recognition.getTop();
                             } else {
                                 telemetry.addData("Detected Objects", "2 Silvers");
                                 telemetry.addData("Gold Mineral Position", "Left");
@@ -474,7 +475,7 @@ public class DepotAutonomous extends LinearOpMode {
 
                     }
 
-                    else if(updatedRecognitions.size() == 1) {
+                    if(updatedRecognitions.size() == 1) {
                         for (Recognition recognition : updatedRecognitions) {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                 goldMineralX = (int) recognition.getTop();
@@ -484,12 +485,9 @@ public class DepotAutonomous extends LinearOpMode {
                         }
                         if (goldMineralX > 300) {
                             return GOLD_CENTER;
-                        } else if (goldMineralX < 300) {
+                        } else {
                             return GOLD_RIGHT;
                         }
-                    }
-                    else if(getRuntime()>17){
-                        return GOLD_LEFT;
                     }
 
                     telemetry.update();
@@ -497,11 +495,10 @@ public class DepotAutonomous extends LinearOpMode {
             }
         }
 
-
         if (tfod != null) {
             tfod.shutdown();
         }
-        return GOLD_CENTER;
+        return GOLD_LEFT;
     }
 
     /**
