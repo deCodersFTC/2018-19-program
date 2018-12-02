@@ -72,8 +72,8 @@ import java.util.List;
  */
 
 
-@Autonomous(name = "Crater Autonomous", group = "Linear OpMode")
-public class CraterAutonomous extends LinearOpMode {
+@Autonomous(name = "Depot Autonomous", group = "Linear OpMode")
+public class DepotAutonomous extends LinearOpMode {
 
     private static final int GOLD_LEFT = 1;
     private static final int GOLD_CENTER = 2;
@@ -481,7 +481,7 @@ public class CraterAutonomous extends LinearOpMode {
 
                     }
 
-                    if(updatedRecognitions.size() == 1) {
+                    if((updatedRecognitions.size() == 1) || (updatedRecognitions.size() >=3)) {
                         for (Recognition recognition : updatedRecognitions) {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                 goldMineralX = (int) recognition.getTop();
