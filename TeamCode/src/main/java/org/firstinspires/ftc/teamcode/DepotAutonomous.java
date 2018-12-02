@@ -230,9 +230,8 @@ public class DepotAutonomous extends LinearOpMode {
          */
 
         if (opModeIsActive()) {
-            int goldPosition = GOLD_CENTER;
-            //switch (getGoldPosition2()) {
-            switch(goldPosition) {
+            switch (getGoldPosition2()) {
+                //switch(goldPosition) {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
@@ -264,13 +263,14 @@ public class DepotAutonomous extends LinearOpMode {
                     slideLeft(18);
                     Forwards(10);
                     slideLeft(28);
-                    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-                    float current_angle = angles.firstAngle;
-                    telemetry.addData("current angle", current_angle);
-                    telemetry.addData("angle at top", angle_at_top);
-                    telemetry.addData("Turning", 45 + (current_angle - angle_at_top));
-                    telemetry.update();
-                    AccurateTurn(45 + (current_angle - angle_at_top));
+                    //angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    //float current_angle = angles.firstAngle;
+                    //telemetry.addData("current angle", current_angle);
+                    //telemetry.addData("angle at top", angle_at_top);
+                    //telemetry.addData("Turning", 45 + (current_angle - angle_at_top));
+                    //telemetry.update();
+                    //AccurateTurn(45 + (current_angle - angle_at_top));
+                    TurnRight(45);
                     Backwards(20);
                     timedSpin(1000);
                     break;
@@ -438,7 +438,7 @@ public class DepotAutonomous extends LinearOpMode {
             }
         }
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 3)) {
+        while (opModeIsActive() && (runtime.seconds() < 4)) {
             //telemetry.addData("Elapsed Time", runtime.toString());
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
