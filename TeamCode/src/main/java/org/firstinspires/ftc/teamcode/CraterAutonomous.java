@@ -29,28 +29,31 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
+import java.util.Locale;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.vuforia.Vuforia;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * This is the Depot side OpMode
@@ -70,7 +73,7 @@ import java.util.Locale;
 
 
 @Autonomous(name = "Depot Autonomous", group = "Linear OpMode")
-public class CraterAutonomous extends LinearOpMode {
+public class DepotAutonomous extends LinearOpMode {
 
     private static final int GOLD_LEFT = 1;
     private static final int GOLD_CENTER = 2;
@@ -122,6 +125,7 @@ public class CraterAutonomous extends LinearOpMode {
             checknum++;
         }
     }
+
     public void stopAllMotors(){
         LeftDriveBack.setPower(0);
         RightDriveBack.setPower(0);
@@ -198,64 +202,82 @@ public class CraterAutonomous extends LinearOpMode {
         /**
          * Landing code
          */
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        float angle_at_top = angles.firstAngle;
 
         while (opModeIsActive()) {
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
             if (heightSensor.getDistance(DistanceUnit.INCH) > 4) {
-                lift.setPower(1.0);
-                // Show the elapsed game time and wheel power.
-                telemetry.addData("Status", "Run Time: " + runtime.toString());
                 telemetry.addData("From ground", heightSensor.getDistance(DistanceUnit.INCH));
                 telemetry.update();
+                lift.setPower(1.0);
             } else {
                 lift.setPower(0);
+                TurnLeft(5);
+                Forwards(4);
+                TurnRight(5);
+
                 break;
             }
         }
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        AccurateTurn(angles.firstAngle - angle_at_top);
+        telemetry.addData("Angle at top", angle_at_top);
+        telemetry.update();
 
 
         /**
          * Sampling
-         * TBD: Need to add a timeout of 3 seconds for Sampling. If we don't sense anything in that time,
-         * assume gold is in center and move on.
-         * TBD: Tune the distances for all the 3 possibilities of gold mineral.
-         * TBD: The bot should come back to neutral position so that the Marker/ Parking code can be developed independently
          */
 
         if (opModeIsActive()) {
             switch (getGoldPosition2()) {
+                //switch(goldPosition) {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
-                    Forwards(3);
                     slideLeft(20);
                     Backwards(23);
-                    slideLeft(20);
-                    AccurateTurn(-45);
-                    slideLeft(12);
-                    Forwards(30);
+                    slideLeft(15);
+                    //TurnLeft(45);
+                    //Forwards(30);
+                    //TurnRight(90);
+                    //timedSpin(1000);
                     break;
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
-                    Forwards(3);
-                    slideLeft(65);
+                    slideLeft(20);
+                    Backwards(5);
+                    slideLeft(15);
+                    //angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    //float current_angle = angles.firstAngle;
+                    //AccurateTurn(45 + (current_angle - angle_at_top));
+                    //TurnRight(45);
+                    //Backwards(30);
+                    //timedSpin(1000);
                     break;
 
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    Forwards(3);
-                    slideLeft(20);
-                    Forwards(20);
-                    slideLeft(20);
-                    AccurateTurn(45);
-                    slideLeft(6);
-                    Backwards(21);
+                    slideLeft(18);
+                    Forwards(10);
+                    slideLeft(28);
+                    //angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    //float current_angle = angles.firstAngle;
+                    //telemetry.addData("current angle", current_angle);
+                    //telemetry.addData("angle at top", angle_at_top);
+                    //telemetry.addData("Turning", 45 + (current_angle - angle_at_top));
+                    //telemetry.update();
+                    //AccurateTurn(45 + (current_angle - angle_at_top));
+                    //TurnRight(45);
+                    //Backwards(20);
+                    //timedSpin(1000);
                     break;
             }
         }
+
+
     }
     public void timedSpin(long timeMS){
         intakeSpin.setPower(-1);
@@ -356,7 +378,7 @@ public class CraterAutonomous extends LinearOpMode {
         double origAngle = turnAngles.firstAngle;
         double targetAngle = origAngle + degrees;
         double difference = degrees;
-        while (Math.abs(difference) > 0.5) {
+        while (Math.abs(difference) > 1) {
             TurnLeft(difference * 0.9);
             turnAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             difference = targetAngle - turnAngles.firstAngle;
@@ -416,13 +438,15 @@ public class CraterAutonomous extends LinearOpMode {
             }
         }
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds ()< 3)) {
+        while (opModeIsActive() && (runtime.seconds() < 4)) {
+            //telemetry.addData("Elapsed Time", runtime.toString());
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
                 // the last time that call was made.
                 List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
                 if (updatedRecognitions != null) {
                     telemetry.addData("# Object Detected", updatedRecognitions.size());
+
                     if (updatedRecognitions.size() == 2) {
 
                         for (Recognition recognition : updatedRecognitions) {
@@ -457,7 +481,7 @@ public class CraterAutonomous extends LinearOpMode {
 
                     }
 
-                    else if(updatedRecognitions.size() == 1) {
+                    if(updatedRecognitions.size() == 1) {
                         for (Recognition recognition : updatedRecognitions) {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                 goldMineralX = (int) recognition.getTop();
@@ -467,7 +491,7 @@ public class CraterAutonomous extends LinearOpMode {
                         }
                         if (goldMineralX > 300) {
                             return GOLD_CENTER;
-                        } else  {
+                        } else {
                             return GOLD_RIGHT;
                         }
                     }
@@ -477,11 +501,10 @@ public class CraterAutonomous extends LinearOpMode {
             }
         }
 
-
         if (tfod != null) {
             tfod.shutdown();
         }
-        return GOLD_CENTER;
+        return GOLD_LEFT;
     }
 
     /**
