@@ -72,8 +72,8 @@ import java.util.List;
  */
 
 
-@Autonomous(name = "Depot Autonomous", group = "Linear OpMode")
-public class DepotAutonomous extends LinearOpMode {
+@Autonomous(name = "Crater Autonomous", group = "Linear OpMode")
+public class CraterAutonomous extends LinearOpMode {
 
     private static final int GOLD_LEFT = 1;
     private static final int GOLD_CENTER = 2;
