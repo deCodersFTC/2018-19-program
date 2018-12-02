@@ -207,11 +207,9 @@ public class DepotAutonomous extends LinearOpMode {
 
         while (opModeIsActive()) {
             if (heightSensor.getDistance(DistanceUnit.INCH) > 4) {
-                lift.setPower(1.0);
-                // Show the elapsed game time and wheel power.
-                telemetry.addData("Status", "Run Time: " + runtime.toString());
                 telemetry.addData("From ground", heightSensor.getDistance(DistanceUnit.INCH));
                 telemetry.update();
+                lift.setPower(1.0);
             } else {
                 lift.setPower(0);
                 TurnLeft(5);
@@ -221,7 +219,7 @@ public class DepotAutonomous extends LinearOpMode {
                 break;
             }
         }
-
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         AccurateTurn(angles.firstAngle-angle_at_top);
 
 
@@ -238,7 +236,7 @@ public class DepotAutonomous extends LinearOpMode {
                     slideLeft(20);
                     Backwards(10);
                     Backwards(23);
-                    slideLeft(20);
+                    slideLeft(10);
                     AccurateTurn(-45);
                     slideLeft(12);
                     Forwards(30);
@@ -263,10 +261,9 @@ public class DepotAutonomous extends LinearOpMode {
                     telemetry.update();
                     slideLeft(20);
                     Forwards(10);
-                    slideLeft(20);
+                    slideLeft(26);
                     AccurateTurn(45);
-                    slideLeft(6);
-                    Backwards(21);
+                    Backwards(20);
                     timedSpin(1000);
                     break;
             }
@@ -434,6 +431,7 @@ public class DepotAutonomous extends LinearOpMode {
         }
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 4)) {
+            //telemetry.addData("Elapsed Time", runtime.toString());
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
                 // the last time that call was made.
@@ -531,3 +529,4 @@ public class DepotAutonomous extends LinearOpMode {
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
     }
 }
+
