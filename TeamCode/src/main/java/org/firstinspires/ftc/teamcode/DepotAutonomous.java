@@ -220,7 +220,9 @@ public class DepotAutonomous extends LinearOpMode {
             }
         }
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        AccurateTurn(angles.firstAngle-angle_at_top);
+        AccurateTurn(angles.firstAngle - angle_at_top);
+        telemetry.addData("Angle at top", angle_at_top);
+        telemetry.update();
 
 
         /**
@@ -228,20 +230,18 @@ public class DepotAutonomous extends LinearOpMode {
          */
 
         if (opModeIsActive()) {
-            //int goldPosition = GOLD_LEFT;
-            switch (getGoldPosition2()) {
+            int goldPosition = GOLD_LEFT;
+            //switch (getGoldPosition2()) {
+            switch(goldPosition) {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
                     slideLeft(20);
-                    Backwards(10);
                     Backwards(23);
-                    slideLeft(10);
-                    AccurateTurn(-45);
-                    slideLeft(12);
+                    slideLeft(15);
+                    TurnLeft(45);
                     Forwards(30);
-                    AccurateTurn(90);
-                    Forwards(3);
+                    TurnRight(90);
                     timedSpin(1000);
                     break;
                 case GOLD_CENTER:
@@ -251,7 +251,9 @@ public class DepotAutonomous extends LinearOpMode {
                     Backwards(10);
                     Backwards(5);
                     slideLeft(55);
-                    AccurateTurn(45);
+                    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    float current_angle = angles.firstAngle;
+                    AccurateTurn(45 + (current_angle - angle_at_top));
                     timedSpin(1000);
                     Forwards(60);
                     break;
@@ -259,10 +261,16 @@ public class DepotAutonomous extends LinearOpMode {
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    slideLeft(20);
+                    slideLeft(18);
                     Forwards(10);
-                    slideLeft(26);
-                    AccurateTurn(45);
+                    slideLeft(28);
+                    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    current_angle = angles.firstAngle;
+                    telemetry.addData("current angle", current_angle);
+                    telemetry.addData("angle at top", angle_at_top);
+                    telemetry.addData("Turning", 45 + (current_angle - angle_at_top));
+                    telemetry.update();
+                    AccurateTurn(45 + (current_angle - angle_at_top));
                     Backwards(20);
                     timedSpin(1000);
                     break;
@@ -370,7 +378,7 @@ public class DepotAutonomous extends LinearOpMode {
         double origAngle = turnAngles.firstAngle;
         double targetAngle = origAngle + degrees;
         double difference = degrees;
-        while (Math.abs(difference) > 0.5) {
+        while (Math.abs(difference) > 1) {
             TurnLeft(difference * 0.9);
             turnAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             difference = targetAngle - turnAngles.firstAngle;
@@ -529,4 +537,3 @@ public class DepotAutonomous extends LinearOpMode {
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
     }
 }
-
