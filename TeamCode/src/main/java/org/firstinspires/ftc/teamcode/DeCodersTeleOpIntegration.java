@@ -145,20 +145,20 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
                 lift.setPower(0);
             }
             if(gamepad2.left_trigger>0){
-                intakeLift.setPower(0.50);
+                intakeLift.setPower(-0.5);
             }
             else if(gamepad2.right_trigger>0){
-                intakeLift.setPower(-0.65);
+                intakeLift.setPower(0.65);
             }
             else{
                 intakeLift.setPower(0);
             }
 
             if(gamepad2.a){
-                intakeSpin.setPower(1);
+                intakeSpin.setPower(-1);
             }
             else if (gamepad2.y){
-                intakeSpin.setPower(-1);
+                intakeSpin.setPower(1);
             }
             else{
                 intakeSpin.setPower(0);
@@ -204,11 +204,12 @@ public class DeCodersTeleOpIntegration extends LinearOpMode {
 
 
             //Show the elapsed game time and wheel power.
+            telemetry.addData("Time Left", 120 - getRuntime());
+
             telemetry.addData("Written by", "deCoders Robotics");
             telemetry.addData("intakeSpin Motor Speed", intakeSpin.getPower());
             telemetry.addData("intakeLift Motor Speed", intakeLift.getPower());
             telemetry.addData("intakeLift.getCurrentPosition", intakeLift.getCurrentPosition());
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
             //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.update();
         }
