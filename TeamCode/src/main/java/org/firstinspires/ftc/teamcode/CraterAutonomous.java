@@ -72,7 +72,7 @@ import java.util.List;
  */
 
 
-@Autonomous(name = "Depot Autonomous", group = "Linear OpMode")
+@Autonomous(name = "Crater Autonomous", group = "Linear OpMode")
 public class CraterAutonomous extends LinearOpMode {
 
     private static final int GOLD_LEFT = 1;
@@ -230,14 +230,15 @@ public class CraterAutonomous extends LinearOpMode {
          */
 
         if (opModeIsActive()) {
+            //int goldPosition = GOLD_CENTER;
             switch (getGoldPosition2()) {
                 //switch(goldPosition) {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
-                    slideLeft(20);
-                    Backwards(23);
-                    slideLeft(15);
+                    slideLeft(25);
+                    Backwards(25);
+                    slideLeft(25);
                     //TurnLeft(45);
                     //Forwards(30);
                     //TurnRight(90);
@@ -247,8 +248,8 @@ public class CraterAutonomous extends LinearOpMode {
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
                     slideLeft(20);
-                    Backwards(5);
-                    slideLeft(15);
+                    Backwards(15);
+                    slideLeft(30);
                     //angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     //float current_angle = angles.firstAngle;
                     //AccurateTurn(45 + (current_angle - angle_at_top));
@@ -260,9 +261,9 @@ public class CraterAutonomous extends LinearOpMode {
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    slideLeft(18);
+                    slideLeft(25);
                     Forwards(10);
-                    slideLeft(28);
+                    slideLeft(25);
                     //angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     //float current_angle = angles.firstAngle;
                     //telemetry.addData("current angle", current_angle);
