@@ -84,17 +84,18 @@ public class DepotAutonomous extends LinearOpMode {
     private DcMotor LeftDriveBack;
     private DcMotor RightDriveBack;
     private DcMotor lift;
-    public CRServo intakeSpin = null;
-
+    public CRServo marker = null;
+    public float current_angle;
     private DistanceSensor heightSensor;
 
     static final double COUNTS_PER_MOTOR_REV  = 1440 ; // eg: TETRIX Motor Encoder
     static final double DRIVE_GEAR_REDUCTION  = 1.0;   // This is < 1.0 if geared UP
     static final double WHEEL_DIAMETER_INCHES = 4.0 ;  // For figuring circumference
     static final double COUNTS_PER_INCH       = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double COUNTS_PER_INCH_2       = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
     static final double DRIVE_SPEED           = 1.0;
-    static final double TURN_SPEED            = 0.6;
-    static final double SLIDE_SPEED           = 0.6;
+    static final double TURN_SPEED            = 1.0;
+    static final double SLIDE_SPEED           = 1.0;
 
     Orientation angles;
     double origAngle;
@@ -154,7 +155,7 @@ public class DepotAutonomous extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        intakeSpin = hardwareMap.get(CRServo.class, "intakeSpin");
+        marker = hardwareMap.get(CRServo.class, "marker");
 
         LeftDriveFront  = hardwareMap.get(DcMotor.class, "LeftDriveFront");
         RightDriveFront = hardwareMap.get(DcMotor.class, "RightDriveFront");
@@ -206,18 +207,8 @@ public class DepotAutonomous extends LinearOpMode {
         float angle_at_top = angles.firstAngle;
 
         while (opModeIsActive()) {
-            if (heightSensor.getDistance(DistanceUnit.INCH) > 4) {
-                telemetry.addData("From ground", heightSensor.getDistance(DistanceUnit.INCH));
-                telemetry.update();
-                lift.setPower(1.0);
-            } else {
-                lift.setPower(0);
-                TurnLeft(5);
-                Forwards(4);
-                TurnRight(5);
-
-                break;
-            }
+            encoderLift();
+            break;
         }
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         AccurateTurn(angles.firstAngle - angle_at_top);
@@ -236,43 +227,48 @@ public class DepotAutonomous extends LinearOpMode {
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
                     slideLeft(20);
-                    Backwards(23);
+                    Backwards(20);
                     slideLeft(15);
                     TurnLeft(45);
-                    Forwards(30);
-                    TurnRight(90);
+                    Forwards(35);
+                    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    current_angle = angles.firstAngle;
+                    AccurateTurn(45 + (current_angle - angle_at_top));
+                    slideLeft(3);
                     timedSpin(1000);
+                    reverseSpin(750);
+                    Forwards(10);
+                    slideLeft(2.5);
+                    Forwards(90);
                     break;
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
-                    slideLeft(20);
-                    Backwards(5);
-                    slideLeft(45);
-                    //angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-                    //float current_angle = angles.firstAngle;
-                    //AccurateTurn(45 + (current_angle - angle_at_top));
-                    TurnRight(45);
-                    //Backwards(30);
+                    slideLeft(65);
+                    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    current_angle = angles.firstAngle;
+                    AccurateTurn(45 + (current_angle - angle_at_top));
+                    slideLeft(4);
                     timedSpin(1000);
+                    reverseSpin(750);
+                    Forwards(10);
+                    slideLeft(6);
+                    Forwards(75);
                     break;
 
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    slideLeft(18);
-                    Forwards(10);
-                    slideLeft(28);
-                    //angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-                    //float current_angle = angles.firstAngle;
-                    //telemetry.addData("current angle", current_angle);
-                    //telemetry.addData("angle at top", angle_at_top);
-                    //telemetry.addData("Turning", 45 + (current_angle - angle_at_top));
-                    //telemetry.update();
-                    //AccurateTurn(45 + (current_angle - angle_at_top));
-                    TurnRight(45);
+                    slideLeft(20);
+                    slideLeft(15);
+                    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    current_angle = angles.firstAngle;
+                    AccurateTurn(45 + (current_angle - angle_at_top));
+                    slideLeft(3);
                     Backwards(20);
                     timedSpin(1000);
+                    reverseSpin(750);
+                    Forwards(100);
                     break;
             }
         }
@@ -280,9 +276,14 @@ public class DepotAutonomous extends LinearOpMode {
 
     }
     public void timedSpin(long timeMS){
-        intakeSpin.setPower(-1);
+        marker.setPower(-1);
         sleep(timeMS);
-        intakeSpin.setPower(0);
+        marker.setPower(0);
+    }
+    public void reverseSpin(long timeMS){
+        marker.setPower(1);
+        sleep(timeMS);
+        marker.setPower(0);
     }
     public void encoderDrive (double speed, double leftFrontInches, double rightFrontInches, double leftBackInches, double rightBackInches, double timeoutS) {
         int newLeftFrontTarget;
@@ -342,7 +343,14 @@ public class DepotAutonomous extends LinearOpMode {
 
         }
     }
+    public void encoderLift(){
+        lift.setPower(1.0);
+        sleep(7500);
+        lift.setPower(0);
+        Forwards(3);
+        slideLeft(1);
 
+    }
     public void Backwards(double distance){
         encoderDrive(DRIVE_SPEED,distance,distance,distance,distance, 5);
     }
@@ -410,6 +418,7 @@ public class DepotAutonomous extends LinearOpMode {
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
     private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
     public int getGoldPosition2() {
+
         /**
          * TensorFlow initial variables
          */
