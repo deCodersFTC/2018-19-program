@@ -78,7 +78,7 @@ public class DepotAutonomous extends LinearOpMode {
     private static final int GOLD_LEFT = 1;
     private static final int GOLD_CENTER = 2;
     private static final int GOLD_RIGHT = 3;
-
+    int goldMineralLeft;
     private DcMotor LeftDriveFront;
     private DcMotor RightDriveFront;
     private DcMotor LeftDriveBack;
@@ -222,45 +222,44 @@ public class DepotAutonomous extends LinearOpMode {
 
         if (opModeIsActive()) {
             switch (getGoldPosition2()) {
-                //switch(goldPosition) {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
                     slideLeft(20);
                     Backwards(20);
-                    slideLeft(15);
-                    TurnLeft(45);
-                    Forwards(35);
+                    slideLeft(28);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
                     AccurateTurn(45 + (current_angle - angle_at_top));
-                    slideLeft(3);
+                    slideLeft(25);
                     timedSpin(1000);
                     reverseSpin(750);
                     Forwards(10);
-                    slideLeft(2.5);
+                    slideLeft(4);
                     Forwards(90);
                     break;
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
+                    Backwards(3);
                     slideLeft(65);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
                     AccurateTurn(45 + (current_angle - angle_at_top));
-                    slideLeft(4);
+                    slideRight(3);
                     timedSpin(1000);
                     reverseSpin(750);
                     Forwards(10);
-                    slideLeft(6);
-                    Forwards(75);
+                    slideLeft(9);
+                    Forwards(80);
                     break;
 
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
                     slideLeft(20);
-                    slideLeft(15);
+                    Forwards(5);
+                    slideLeft(27);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
                     AccurateTurn(45 + (current_angle - angle_at_top));
@@ -268,7 +267,7 @@ public class DepotAutonomous extends LinearOpMode {
                     Backwards(20);
                     timedSpin(1000);
                     reverseSpin(750);
-                    Forwards(100);
+                    Forwards(80);
                     break;
             }
         }
@@ -344,10 +343,14 @@ public class DepotAutonomous extends LinearOpMode {
         }
     }
     public void encoderLift(){
-        lift.setPower(1.0);
-        sleep(7500);
+        lift.setPower(-1.0);
+        sleep(6900);
+        telemetry.addData("Landed", "ground?");
+        telemetry.update();
         lift.setPower(0);
-        Forwards(3);
+        TurnLeft(10);
+        Forwards(6);
+        TurnRight(10);
         slideLeft(1);
 
     }
@@ -425,6 +428,7 @@ public class DepotAutonomous extends LinearOpMode {
         int goldMineralX = -1;
         int silverMineral1X = -1;
         int silverMineral2X = -1;
+        goldMineralLeft = -1;
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
         initVuforia();
@@ -447,7 +451,7 @@ public class DepotAutonomous extends LinearOpMode {
             }
         }
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 4)) {
+        while (opModeIsActive() && (runtime.seconds() <= 4)) {
             //telemetry.addData("Elapsed Time", runtime.toString());
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
@@ -457,52 +461,58 @@ public class DepotAutonomous extends LinearOpMode {
                     telemetry.addData("# Object Detected", updatedRecognitions.size());
 
                     if (updatedRecognitions.size() == 2) {
-
                         for (Recognition recognition : updatedRecognitions) {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                goldMineralX = (int) recognition.getTop();
-                            } else if (silverMineral1X == -1) {
-                                silverMineral1X = (int) recognition.getTop();
+                                goldMineralLeft = (int) recognition.getLeft();
+                                telemetry.addData("Gold",goldMineralLeft);
+                                telemetry.update();
                             } else {
-                                telemetry.addData("Detected Objects", "2 Silvers");
-                                telemetry.addData("Gold Mineral Position", "Left");
                                 return GOLD_LEFT;
                             }
                         }
-
-                        // If 1 gold and 1 silver is detected
-
-                        if(goldMineralX != -1 && silverMineral1X != -1){
-                            telemetry.addData("Detected Objects", "Gold and Silver");
-                            if (goldMineralX > silverMineral1X) {
-                                telemetry.addData("Gold Mineral Position", "Center");
-                                return GOLD_CENTER;
-                            } else{
-                                telemetry.addData("Gold Mineral Position", "Right");
-                                return GOLD_RIGHT;
-
-                            }
-
-
-
+                        if (goldMineralLeft > 739.5) {
+                            return GOLD_RIGHT;
+                        } else {
+                            return GOLD_CENTER;
                         }
-                        telemetry.update();
+
+
+
+                        //     // If 1 gold and 1 silver is detected
+
+                        //     if(goldMineralX != -1 && silverMineral1X != -1){
+                        //         telemetry.addData("Detected Objects", "Gold and Silver");
+                        //         if (goldMineralX > silverMineral1X) {
+                        //             telemetry.addData("Gold Mineral Position", "Right");
+                        //             return GOLD_RIGHT;
+                        //         } else{
+                        //             telemetry.addData("Gold Mineral Position", "Center");
+                        //             return GOLD_CENTER;
+
+                        //         }
+
+
+
+                        //     }
 
                     }
 
                     if((updatedRecognitions.size() == 1) || (updatedRecognitions.size() >=3)) {
                         for (Recognition recognition : updatedRecognitions) {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                goldMineralX = (int) recognition.getTop();
+                                goldMineralLeft = (int) recognition.getLeft();
                             } else {
                                 return GOLD_LEFT;
                             }
                         }
-                        if (goldMineralX > 300) {
-                            return GOLD_CENTER;
-                        } else {
+                        if (goldMineralLeft > 739.5) {
                             return GOLD_RIGHT;
+                        } else {
+                            return GOLD_CENTER;
                         }
+                    }
+                    else if(updatedRecognitions.size()==0 && runtime.seconds()>=3){
+                        return GOLD_LEFT;
                     }
 
                     telemetry.update();
