@@ -56,7 +56,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import java.util.List;
 
 /**
- * This is the Depot side OpMode
+ * This is the Crater side OpMode
  * It does the following:
  * 1. Initialize
  * 2.
@@ -207,11 +207,9 @@ public class DepotAutonomous extends LinearOpMode {
         float angle_at_top = angles.firstAngle;
 
         while (opModeIsActive()) {
-            encoderLift();
+            //encoderLift();
             break;
         }
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        AccurateTurn(angles.firstAngle - angle_at_top);
         telemetry.addData("Angle at top", angle_at_top);
         telemetry.update();
 
@@ -225,49 +223,46 @@ public class DepotAutonomous extends LinearOpMode {
                 case GOLD_LEFT:
                     telemetry.addData("Gold Pos", "Left");
                     telemetry.update();
-                    slideLeft(20);
-                    Backwards(20);
-                    slideLeft(28);
+                    slideRight(10);
+                    Forwards(26);
+                    slideRight(26);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
-                    AccurateTurn(45 + (current_angle - angle_at_top));
-                    slideLeft(25);
-                    timedSpin(1000);
-                    reverseSpin(750);
-                    Forwards(10);
-                    slideLeft(4);
-                    Forwards(90);
+                    AccurateTurn(29 - current_angle+angle_at_top);
+                    slideRight(20);
+                    timedSpin(500);
+                    Backwards(80);
                     break;
                 case GOLD_CENTER:
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
-                    Backwards(3);
-                    slideLeft(65);
+                    slideRight(10);
+                    Forwards(9);
+                    slideRight(37);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
-                    AccurateTurn(45 + (current_angle - angle_at_top));
-                    slideRight(3);
-                    timedSpin(1000);
-                    reverseSpin(750);
-                    Forwards(10);
-                    slideLeft(9);
-                    Forwards(80);
+                    AccurateTurn(29 - current_angle + angle_at_top);
+                    slideRight(15);
+                    timedSpin(500);
+                    Backwards(40);
+                    slideRight(5);
+                    Backwards(30);
                     break;
+
 
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    slideLeft(20);
-                    Forwards(5);
-                    slideLeft(27);
+                    slideRight(13);
+                    Backwards(8);
+                    slideRight(34);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
-                    AccurateTurn(45 + (current_angle - angle_at_top));
-                    slideLeft(3);
-                    Backwards(20);
-                    timedSpin(1000);
-                    reverseSpin(750);
-                    Forwards(80);
+                    AccurateTurn(30 - current_angle + angle_at_top);
+                    Forwards(18);
+                    timedSpin(500);
+                    slideLeft(8);
+                    Backwards(80);
                     break;
             }
         }
@@ -343,15 +338,17 @@ public class DepotAutonomous extends LinearOpMode {
         }
     }
     public void encoderLift(){
-        lift.setPower(-1.0);
-        sleep(6900);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        float angle_at_top = angles.firstAngle;
+        lift.setPower(1.0);
+        sleep(8000);
         telemetry.addData("Landed", "ground?");
         telemetry.update();
         lift.setPower(0);
-        TurnLeft(10);
-        Forwards(6);
-        TurnRight(10);
-        slideLeft(1);
+        Backwards(9);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        AccurateTurn(angles.firstAngle - angle_at_top);
+        slideRight(10);
 
     }
     public void Backwards(double distance){
@@ -511,7 +508,7 @@ public class DepotAutonomous extends LinearOpMode {
                             return GOLD_CENTER;
                         }
                     }
-                    else if(updatedRecognitions.size()==0 && runtime.seconds()>=3){
+                    else if(updatedRecognitions.size()==0 && runtime.seconds()>=4){
                         return GOLD_LEFT;
                     }
 
