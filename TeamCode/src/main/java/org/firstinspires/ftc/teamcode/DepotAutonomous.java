@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -38,6 +39,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import java.lang.Math;
 import java.util.Locale;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -206,10 +208,10 @@ public class DepotAutonomous extends LinearOpMode {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         float angle_at_top = angles.firstAngle;
 
-        while (opModeIsActive()) {
-            //encoderLift();
-            break;
-        }
+          while (opModeIsActive()) {
+              encoderLift();
+              break;
+          }
         telemetry.addData("Angle at top", angle_at_top);
         telemetry.update();
 
@@ -217,7 +219,7 @@ public class DepotAutonomous extends LinearOpMode {
         /**
          * Sampling
          */
-
+        
         if (opModeIsActive()) {
             switch (getGoldPosition2()) {
                 case GOLD_LEFT:
@@ -228,8 +230,8 @@ public class DepotAutonomous extends LinearOpMode {
                     slideRight(26);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
-                    AccurateTurn(29 - current_angle+angle_at_top);
-                    slideRight(20);
+                    AccurateTurn(45 - current_angle+angle_at_top);
+                    slideRight(30);
                     timedSpin(500);
                     Backwards(80);
                     break;
@@ -237,32 +239,30 @@ public class DepotAutonomous extends LinearOpMode {
                     telemetry.addData("Gold Pos", "Center");
                     telemetry.update();
                     slideRight(10);
-                    Forwards(9);
-                    slideRight(37);
+                    Forwards(7);
+                    slideRight(37); 
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
-                    AccurateTurn(29 - current_angle + angle_at_top);
+                    AccurateTurn(45 - current_angle + angle_at_top);
                     slideRight(15);
                     timedSpin(500);
-                    Backwards(40);
-                    slideRight(5);
-                    Backwards(30);
+                    Backwards(70);
                     break;
-
+                    
 
                 case GOLD_RIGHT:
                     telemetry.addData("Gold Pos", "Right");
                     telemetry.update();
-                    slideRight(13);
+                    slideRight(12);
                     Backwards(8);
-                    slideRight(34);
+                    slideRight(35);
                     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                     current_angle = angles.firstAngle;
-                    AccurateTurn(30 - current_angle + angle_at_top);
-                    Forwards(18);
+                    AccurateTurn(44 - current_angle + angle_at_top);
+                    Forwards(15);
                     timedSpin(500);
-                    slideLeft(8);
-                    Backwards(80);
+                    slideLeft(4);
+                    Backwards(76);
                     break;
             }
         }
@@ -270,13 +270,13 @@ public class DepotAutonomous extends LinearOpMode {
 
     }
     public void timedSpin(long timeMS){
-        marker.setPower(-1);
-        sleep(timeMS);
-        marker.setPower(0);
-    }
-    public void reverseSpin(long timeMS){
-        marker.setPower(1);
-        sleep(timeMS);
+        if(timeMS >= 0){
+            marker.setPower(-1);
+        }
+        else{
+            marker.setPower(1);
+        }
+        sleep(Math.abs(timeMS));
         marker.setPower(0);
     }
     public void encoderDrive (double speed, double leftFrontInches, double rightFrontInches, double leftBackInches, double rightBackInches, double timeoutS) {
@@ -341,15 +341,14 @@ public class DepotAutonomous extends LinearOpMode {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         float angle_at_top = angles.firstAngle;
         lift.setPower(1.0);
-        sleep(8000);
+        sleep(7800);
         telemetry.addData("Landed", "ground?");
         telemetry.update();
         lift.setPower(0);
-        Backwards(9);
+        Backwards(8.5);
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         AccurateTurn(angles.firstAngle - angle_at_top);
-        slideRight(10);
-
+        slideRight(11);
     }
     public void Backwards(double distance){
         encoderDrive(DRIVE_SPEED,distance,distance,distance,distance, 5);
@@ -457,14 +456,14 @@ public class DepotAutonomous extends LinearOpMode {
                 if (updatedRecognitions != null) {
                     telemetry.addData("# Object Detected", updatedRecognitions.size());
 
-                    if (updatedRecognitions.size() == 2) {
-                        for (Recognition recognition : updatedRecognitions) {
+                     if (updatedRecognitions.size() == 2) {
+                         for (Recognition recognition : updatedRecognitions) {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                 goldMineralLeft = (int) recognition.getLeft();
                                 telemetry.addData("Gold",goldMineralLeft);
                                 telemetry.update();
                             } else {
-                                return GOLD_LEFT;
+                               return GOLD_LEFT;
                             }
                         }
                         if (goldMineralLeft > 739.5) {
@@ -472,25 +471,25 @@ public class DepotAutonomous extends LinearOpMode {
                         } else {
                             return GOLD_CENTER;
                         }
+                        
+                         
+
+                    //     // If 1 gold and 1 silver is detected
+
+                    //     if(goldMineralX != -1 && silverMineral1X != -1){
+                    //         telemetry.addData("Detected Objects", "Gold and Silver");
+                    //         if (goldMineralX > silverMineral1X) {
+                    //             telemetry.addData("Gold Mineral Position", "Right");
+                    //             return GOLD_RIGHT;
+                    //         } else{
+                    //             telemetry.addData("Gold Mineral Position", "Center");
+                    //             return GOLD_CENTER;
+
+                    //         }
 
 
 
-                        //     // If 1 gold and 1 silver is detected
-
-                        //     if(goldMineralX != -1 && silverMineral1X != -1){
-                        //         telemetry.addData("Detected Objects", "Gold and Silver");
-                        //         if (goldMineralX > silverMineral1X) {
-                        //             telemetry.addData("Gold Mineral Position", "Right");
-                        //             return GOLD_RIGHT;
-                        //         } else{
-                        //             telemetry.addData("Gold Mineral Position", "Center");
-                        //             return GOLD_CENTER;
-
-                        //         }
-
-
-
-                        //     }
+                    //     }
 
                     }
 
@@ -499,7 +498,7 @@ public class DepotAutonomous extends LinearOpMode {
                             if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                 goldMineralLeft = (int) recognition.getLeft();
                             } else {
-                                return GOLD_LEFT;
+                               return GOLD_LEFT;
                             }
                         }
                         if (goldMineralLeft > 739.5) {
